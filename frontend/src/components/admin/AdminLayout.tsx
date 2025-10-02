@@ -1,28 +1,40 @@
-import { useState } from 'react';
-import { Outlet, useNavigate, useLocation, NavLink } from 'react-router-dom';
-import { Menu, X, LayoutDashboard, Utensils, QrCode, User, LogOut } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { useState } from "react";
+import { Outlet, useNavigate, useLocation, NavLink } from "react-router-dom";
+import {
+  Menu,
+  X,
+  LayoutDashboard,
+  Utensils,
+  QrCode,
+  User,
+  LogOut,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { clearToken } from "@/lib/auth";
+
+const navItems = [
+  { icon: LayoutDashboard, label: "Dashboard", path: "/admin/dashboard" },
+  { icon: Utensils, label: "Menu Management", path: "/admin/menu" },
+  { icon: QrCode, label: "QR Code", path: "/admin/qr" },
+  { icon: User, label: "Profile", path: "/admin/profile" },
+] as const;
 
 export const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
-  const navItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' },
-    { icon: Utensils, label: 'Menu Management', path: '/admin/menu' },
-    { icon: QrCode, label: 'QR Code', path: '/admin/qr' },
-    { icon: User, label: 'Profile', path: '/admin/profile' },
-  ];
-
   const handleLogout = () => {
-    // UI only - would clear session in real app
-    navigate('/admin/login');
+    clearToken();
+    navigate("/admin/login", { replace: true });
   };
 
-  const NavLinkItem = ({ item }: { item: typeof navItems[0] }) => {
-    const isActive = location.pathname === item.path;
+  const NavLinkItem = ({ item }: { item: (typeof navItems)[number] }) => {
+    const isActive =
+      location.pathname === item.path ||
+      (item.path === "/admin/dashboard" && location.pathname === "/admin");
+
     return (
       <NavLink
         to={item.path}
@@ -61,7 +73,9 @@ export const AdminLayout = () => {
         {/* Header */}
         <div className="p-6 border-b border-border flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-bold font-serif text-foreground">Admin Panel</h2>
+            <h2 className="text-xl font-bold font-serif text-foreground">
+              Admin Panel
+            </h2>
             <p className="text-xs text-muted-foreground">Grand Vista Hotel</p>
           </div>
           <Button

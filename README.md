@@ -71,3 +71,71 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+
+---
+
+# Monorepo: Frontend + Backend (Development Guide)
+
+This project now includes a backend (Node.js + Express + TypeScript + MongoDB) and the existing frontend (Vite + React + TS).
+
+## Run Backend
+
+1. Create an `.env` in `backend/` from `.env.example` and set a valid `MONGODB_URI`.
+   - Populate `DB_NAME` if you use a different database name.
+   - Add a strong `JWT_SECRET` for signing admin sessions.
+2. Install and start:
+
+```sh
+cd backend
+npm install
+npm run dev
+```
+
+Server defaults to `http://localhost:5000` and exposes `GET /health` and `/api/menu` routes.
+
+### Admin authentication API
+
+- `POST /api/admin/login` expects `{ "email": string, "password": string }` and returns `{ token, admin }`.
+- The JWT includes the admin id (`adminId`) and role. Tokens expire after 1 hour.
+
+### Seed an initial admin user
+
+The repo ships with a helper script that will create (or update) the default admin:
+
+```powershell
+npx ts-node backend/scripts/seedAdmin.ts
+```
+
+Environment variables required by the script/server:
+
+```
+MONGODB_URI=mongodb://127.0.0.1:27017
+MONGO_URI=mongodb://127.0.0.1:27017/digital-menu-charm # optional alias
+DB_NAME=digital-menu-charm
+JWT_SECRET=replace_with_strong_secret
+```
+
+The script seeds `superadmin / admin@grandvista.com` with password `Admin@123`. Run it again any time to update the password. Afterwards you can validate via `mongosh`:
+
+```javascript
+use digital-menu-charm;
+db.admins.find({ email: "admin@grandvista.com" }).pretty();
+```
+
+## Run Frontend
+
+From repo root, run inside the `frontend/` folder:
+
+```sh
+cd frontend
+npm install
+npm run dev
+```
+
+Optionally create an `.env` variable for API base URL:
+
+```
+VITE_API_URL=http://localhost:5000/api
+```
+
+If not set, the app defaults to `http://localhost:5000/api` for API calls.
