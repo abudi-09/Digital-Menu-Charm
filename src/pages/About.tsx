@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, MapPin, Phone, Clock, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Footer } from '@/components/Footer';
 
 const About = () => {
   const navigate = useNavigate();
@@ -14,7 +15,7 @@ const About = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <header className="sticky top-0 z-20 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="container mx-auto px-4 py-4 flex items-center gap-4">
@@ -30,7 +31,7 @@ const About = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 max-w-4xl">
+      <main className="container mx-auto px-4 py-8 max-w-4xl flex-1">
         <div className="space-y-8 animate-fade-up">
           {/* Hero Section */}
           <div className="text-center space-y-4">
@@ -93,6 +94,8 @@ const About = () => {
           </div>
         </div>
       </main>
+
+      <Footer />
     </div>
   );
 };

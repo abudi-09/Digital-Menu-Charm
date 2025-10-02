@@ -115,7 +115,7 @@ const QRManagement = () => {
       {/* Analytics Stats */}
       <div>
         <h2 className="text-xl font-semibold font-serif text-foreground mb-4">Analytics Overview</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatsCard
             title="Total Scans"
             value={stats.totalScans}
@@ -144,9 +144,9 @@ const QRManagement = () => {
       </div>
 
       {/* QR Code Display */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
         {/* QR Code Card */}
-        <Card className="p-8 bg-gradient-card border-border space-y-6">
+        <Card className="p-6 md:p-8 bg-gradient-card border-border space-y-6">
           <div className="text-center space-y-4">
             <h3 className="text-2xl font-bold font-serif text-foreground">Your Menu QR Code</h3>
             <p className="text-sm text-muted-foreground">
@@ -160,16 +160,17 @@ const QRManagement = () => {
                 <div className="p-4 bg-background rounded-lg border-2 border-border shadow-soft">
                   <img
                     src={qrCodeUrl}
-                    alt="Menu QR Code"
-                    className="w-64 h-64"
+                    alt="QR code preview for Grand Vista Hotel menu"
+                    className="w-48 h-48 sm:w-64 sm:h-64"
                   />
                 </div>
               </div>
 
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-col sm:flex-row lg:flex-col gap-3">
                 <Button
                   onClick={handleDownloadQR}
                   className="w-full bg-primary hover:bg-primary/90 text-primary-foreground gap-2"
+                  aria-label="Download QR code image"
                 >
                   <Download className="w-5 h-5" />
                   Download QR Code
@@ -178,6 +179,7 @@ const QRManagement = () => {
                   onClick={handlePrintQR}
                   variant="outline"
                   className="w-full gap-2"
+                  aria-label="Print QR code"
                 >
                   <QrIcon className="w-5 h-5" />
                   Print QR Code
@@ -192,12 +194,13 @@ const QRManagement = () => {
               </div>
             </div>
           ) : (
-            <div className="text-center py-8">
+            <div className="text-center py-8 sm:py-12">
               <QrIcon className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground mb-4">No QR code generated yet</p>
               <Button
                 onClick={() => setQrGenerated(true)}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                aria-label="Generate new QR code"
               >
                 Generate QR Code
               </Button>

@@ -6,6 +6,7 @@ import { MenuItemCard } from '@/components/MenuItemCard';
 import { ItemDetailsModal } from '@/components/ItemDetailsModal';
 import { CategoryTabs } from '@/components/CategoryTabs';
 import { SkeletonCard } from '@/components/SkeletonCard';
+import { Footer } from '@/components/Footer';
 import { menuItems, categories } from '@/data/menuData';
 import { MenuItem } from '@/types/menu';
 
@@ -54,7 +55,7 @@ const Menu = () => {
   const filteredItems = menuItems.filter(item => item.category === activeCategory);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <header className="sticky top-0 z-20 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="container mx-auto px-4 py-4 flex items-center gap-4">
@@ -81,7 +82,7 @@ const Menu = () => {
       />
 
       {/* Menu Items */}
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 flex-1">
         <div id={activeCategory} className="space-y-4">
           <h2 className="text-3xl font-bold font-serif text-foreground mb-6">{activeCategory}</h2>
           
@@ -110,6 +111,8 @@ const Menu = () => {
           )}
         </div>
       </main>
+
+      <Footer />
 
       {/* Item Details Modal */}
       <ItemDetailsModal 

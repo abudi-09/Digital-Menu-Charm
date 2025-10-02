@@ -1,7 +1,8 @@
 import { useNavigate } from 'react-router-dom';
-import { Utensils, Wine, Cookie, Coffee, Sparkles, Info } from 'lucide-react';
+import { Utensils, Wine, Cookie, Coffee, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CategoryCard } from '@/components/CategoryCard';
+import { Footer } from '@/components/Footer';
 import { menuItems } from '@/data/menuData';
 import heroImage from '@/assets/hero-image.jpg';
 
@@ -24,7 +25,7 @@ const Index = () => {
   }));
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Hero Section */}
       <section className="relative h-[50vh] min-h-[400px] flex items-center justify-center overflow-hidden">
         <div 
@@ -55,7 +56,7 @@ const Index = () => {
       </section>
 
       {/* Categories Section */}
-      <section className="container mx-auto px-4 py-16">
+      <section className="container mx-auto px-4 py-16 flex-1">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12 animate-fade-in">
             <h2 className="text-4xl font-bold font-serif text-foreground mb-4">Our Menu</h2>
@@ -78,32 +79,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-border bg-muted/30 py-8">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="text-center md:text-left">
-              <h3 className="font-bold font-serif text-foreground mb-1">Grand Vista Hotel</h3>
-              <p className="text-sm text-muted-foreground">Experience culinary excellence</p>
-            </div>
-            
-            <Button 
-              variant="outline"
-              onClick={() => navigate('/about')}
-              className="gap-2"
-            >
-              <Info className="w-4 h-4" />
-              About Us
-            </Button>
-          </div>
-          
-          <div className="text-center mt-6 pt-6 border-t border-border">
-            <p className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} Grand Vista Hotel. All rights reserved.
-            </p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };
