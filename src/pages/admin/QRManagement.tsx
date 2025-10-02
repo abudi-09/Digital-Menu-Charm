@@ -105,154 +105,182 @@ const QRManagement = () => {
   };
 
   return (
-    <div className="p-4 md:p-8 space-y-8 animate-fade-in">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl md:text-4xl font-bold font-serif text-foreground mb-2">QR Code Management</h1>
-        <p className="text-muted-foreground">Generate and manage your digital menu QR code</p>
-      </div>
-
-      {/* Analytics Stats */}
-      <div>
-        <h2 className="text-xl font-semibold font-serif text-foreground mb-4">Analytics Overview</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatsCard
-            title="Total Scans"
-            value={stats.totalScans}
-            icon={QrIcon}
-            trend={{ value: '+12% this month', positive: true }}
-          />
-          <StatsCard
-            title="Scans Today"
-            value={stats.scansToday}
-            icon={TrendingUp}
-            description="Last 24 hours"
-          />
-          <StatsCard
-            title="This Week"
-            value={stats.scansThisWeek}
-            icon={Calendar}
-            description="Last 7 days"
-          />
-          <StatsCard
-            title="Unique Visitors"
-            value={stats.uniqueVisitors}
-            icon={Users}
-            description="All time"
-          />
+    <div className="p-4 md:p-8 space-y-6 md:space-y-8 animate-fade-in">
+      {/* Header with Title and Generate Button */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl md:text-4xl font-bold font-serif text-foreground mb-2">
+            QR Code Management
+          </h1>
+          <p className="text-muted-foreground">Generate and manage your digital menu QR code</p>
         </div>
+        <Button
+          onClick={() => setQrGenerated(true)}
+          className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2 w-full sm:w-auto"
+          aria-label="Generate QR code for hotel menu"
+        >
+          <QrIcon className="w-5 h-5" />
+          {qrGenerated ? 'Regenerate QR Code' : 'Generate QR Code'}
+        </Button>
       </div>
 
-      {/* QR Code Display */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
-        {/* QR Code Card */}
-        <Card className="p-6 md:p-8 bg-gradient-card border-border space-y-6">
-          <div className="text-center space-y-4">
-            <h3 className="text-2xl font-bold font-serif text-foreground">Your Menu QR Code</h3>
-            <p className="text-sm text-muted-foreground">
-              Customers can scan this code to access your digital menu
-            </p>
-          </div>
+      {/* QR Preview Panel and Analytics Section */}
+      {qrGenerated && (
+        <>
+          {/* QR Preview Panel */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* QR Code Preview - Takes 2 columns on desktop */}
+            <Card className="lg:col-span-2 p-6 md:p-8 bg-card border-border">
+              <div className="space-y-6">
+                <div className="text-center lg:text-left">
+                  <h2 className="text-2xl font-bold font-serif text-foreground mb-2">
+                    Your Menu QR Code
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    Customers can scan this code to access your digital menu
+                  </p>
+                </div>
 
-          {qrGenerated ? (
-            <div className="space-y-6">
-              <div className="flex justify-center">
-                <div className="p-4 bg-background rounded-lg border-2 border-border shadow-soft">
-                  <img
-                    src={qrCodeUrl}
-                    alt="QR code preview for Grand Vista Hotel menu"
-                    className="w-48 h-48 sm:w-64 sm:h-64"
-                  />
+                <div className="flex flex-col lg:flex-row items-center lg:items-start gap-6">
+                  {/* QR Image */}
+                  <div className="flex-shrink-0">
+                    <div className="p-4 bg-background rounded-lg border-2 border-border shadow-sm">
+                      <img
+                        src={qrCodeUrl}
+                        alt="QR code preview"
+                        className="w-48 h-48 md:w-56 md:h-56 lg:w-64 lg:h-64"
+                      />
+                    </div>
+                  </div>
+
+                  {/* QR Info and Actions */}
+                  <div className="flex-1 w-full space-y-4">
+                    <div className="p-4 bg-muted/50 rounded-lg">
+                      <p className="text-xs text-muted-foreground break-all">
+                        <strong className="text-foreground">Menu URL:</strong>
+                        <br />
+                        {menuUrl}
+                      </p>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <Button
+                        onClick={handleDownloadQR}
+                        variant="outline"
+                        className="w-full sm:flex-1 gap-2"
+                        aria-label="Download QR code image"
+                      >
+                        <Download className="w-5 h-5" />
+                        Download QR
+                      </Button>
+                      <Button
+                        onClick={handlePrintQR}
+                        variant="outline"
+                        className="w-full sm:flex-1 gap-2"
+                        aria-label="Print QR code"
+                      >
+                        <QrIcon className="w-5 h-5" />
+                        Print QR
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               </div>
+            </Card>
 
-              <div className="flex flex-col sm:flex-row lg:flex-col gap-3">
-                <Button
-                  onClick={handleDownloadQR}
-                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground gap-2"
-                  aria-label="Download QR code image"
-                >
-                  <Download className="w-5 h-5" />
-                  Download QR Code
-                </Button>
-                <Button
-                  onClick={handlePrintQR}
-                  variant="outline"
-                  className="w-full gap-2"
-                  aria-label="Print QR code"
-                >
-                  <QrIcon className="w-5 h-5" />
-                  Print QR Code
-                </Button>
+            {/* Instructions Card - 1 column on desktop */}
+            <Card className="p-6 bg-card border-border">
+              <h3 className="text-xl font-semibold font-serif text-foreground mb-4">How to Use</h3>
+              <ol className="space-y-3 text-sm text-muted-foreground">
+                <li className="flex gap-3">
+                  <span className="font-bold text-primary">1.</span>
+                  <span>Download or print the QR code</span>
+                </li>
+                <li className="flex gap-3">
+                  <span className="font-bold text-primary">2.</span>
+                  <span>Display at reception, tables, or entrance</span>
+                </li>
+                <li className="flex gap-3">
+                  <span className="font-bold text-primary">3.</span>
+                  <span>Customers scan with smartphone camera</span>
+                </li>
+                <li className="flex gap-3">
+                  <span className="font-bold text-primary">4.</span>
+                  <span>Track scans in analytics below</span>
+                </li>
+              </ol>
+
+              <div className="mt-6 pt-6 border-t border-border">
+                <div className="flex items-start gap-3">
+                  <Clock className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                  <div>
+                    <h4 className="font-semibold text-foreground text-sm mb-1">Last Scan</h4>
+                    <p className="text-sm text-muted-foreground">{stats.lastScanTime}</p>
+                  </div>
+                </div>
               </div>
+            </Card>
+          </div>
 
-              <div className="p-4 bg-muted/50 rounded-lg">
-                <p className="text-xs text-muted-foreground break-all">
-                  <strong>Menu URL:</strong><br />
-                  {menuUrl}
-                </p>
-              </div>
+          {/* Analytics Summary Cards */}
+          <div>
+            <h2 className="text-xl font-semibold font-serif text-foreground mb-4">
+              Analytics Overview
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <StatsCard
+                title="Total Scans"
+                value={stats.totalScans}
+                icon={QrIcon}
+                trend={{ value: '+12% this month', positive: true }}
+              />
+              <StatsCard
+                title="Scans Today"
+                value={stats.scansToday}
+                icon={TrendingUp}
+                description="Last 24 hours"
+              />
+              <StatsCard
+                title="This Week"
+                value={stats.scansThisWeek}
+                icon={Calendar}
+                description="Last 7 days"
+              />
+              <StatsCard
+                title="Unique Visitors"
+                value={stats.uniqueVisitors}
+                icon={Users}
+                description="All time"
+              />
             </div>
-          ) : (
-            <div className="text-center py-8 sm:py-12">
-              <QrIcon className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground mb-4">No QR code generated yet</p>
-              <Button
-                onClick={() => setQrGenerated(true)}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                aria-label="Generate new QR code"
-              >
-                Generate QR Code
-              </Button>
-            </div>
-          )}
-        </Card>
+          </div>
 
-        {/* Instructions & Tips */}
-        <div className="space-y-6">
-          <Card className="p-6 bg-gradient-card border-border">
-            <h3 className="text-xl font-semibold font-serif text-foreground mb-4">How to Use</h3>
-            <ol className="space-y-3 text-sm text-muted-foreground">
-              <li className="flex gap-3">
-                <span className="font-bold text-primary">1.</span>
-                <span>Download or print the QR code using the buttons provided</span>
-              </li>
-              <li className="flex gap-3">
-                <span className="font-bold text-primary">2.</span>
-                <span>Display the QR code at your reception, tables, or entrance</span>
-              </li>
-              <li className="flex gap-3">
-                <span className="font-bold text-primary">3.</span>
-                <span>Customers can scan it with their smartphone camera to view the menu</span>
-              </li>
-              <li className="flex gap-3">
-                <span className="font-bold text-primary">4.</span>
-                <span>Track scans and visitor analytics in real-time</span>
-              </li>
-            </ol>
-          </Card>
-
-          <Card className="p-6 bg-gradient-card border-border">
-            <div className="flex items-start gap-3">
-              <Clock className="w-5 h-5 text-primary mt-0.5" />
-              <div>
-                <h4 className="font-semibold text-foreground mb-1">Last Scan</h4>
-                <p className="text-sm text-muted-foreground">{stats.lastScanTime}</p>
-              </div>
-            </div>
-          </Card>
-
+          {/* Pro Tips Card */}
           <Card className="p-6 bg-primary/5 border-primary/20">
-            <h4 className="font-semibold text-foreground mb-2">💡 Pro Tips</h4>
+            <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+              <span className="text-lg">💡</span>
+              Pro Tips
+            </h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>• Place QR codes in well-lit, easily accessible locations</li>
               <li>• Print in high quality (at least 300 DPI) for best results</li>
-              <li>• Test the QR code regularly to ensure it works</li>
+              <li>• Test the QR code regularly to ensure it works correctly</li>
               <li>• Consider laminating printed codes for durability</li>
             </ul>
           </Card>
-        </div>
-      </div>
+        </>
+      )}
+
+      {/* Empty State when no QR generated */}
+      {!qrGenerated && (
+        <Card className="p-12 md:p-16 text-center bg-card border-border">
+          <QrIcon className="w-20 h-20 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-xl font-semibold text-foreground mb-2">No QR Code Generated</h3>
+          <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+            Click the "Generate QR Code" button above to create a QR code for your digital menu.
+          </p>
+        </Card>
+      )}
     </div>
   );
 };
