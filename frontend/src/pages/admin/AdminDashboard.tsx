@@ -9,6 +9,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StatsCard } from "@/components/admin/StatsCard";
+import { useQuery } from "@tanstack/react-query";
+import { fetchQRStats } from "@/lib/qrApi";
 import { useMenuQuery } from "@/hooks/useMenuApi";
 import React from "react";
 
@@ -37,10 +39,28 @@ const AdminDashboard = () => {
     totalCategories: Array.from(new Set(mapped.map((item) => item.category)))
       .length,
     outOfStock: mapped.filter((item) => !item.available).length,
-    totalScans: 1247,
-    scansToday: 34,
-    uniqueVisitors: 892,
+    // QR placeholders — overwritten by backend data below when available
+    totalScans: 0,
+    scansToday: 0,
+    uniqueVisitors: 0,
   };
+
+  const {
+    data: qrStats,
+    isLoading: qrStatsLoading,
+    isFetching: qrStatsFetching,
+  } = useQuery({
+    queryKey: ["qr-stats"],
+    queryFn: fetchQRStats,
+    refetchInterval: 30_000,
+  });
+
+  // if backend data available, merge into stats used by the UI
+  if (qrStats) {
+    stats.totalScans = qrStats.totalScans;
+    stats.scansToday = qrStats.scansToday;
+    stats.uniqueVisitors = qrStats.uniqueVisitors;
+  }
 
   const quickActions = [
     {
@@ -110,18 +130,21 @@ const AdminDashboard = () => {
             value={stats.totalScans}
             icon={QrCode}
             trend={{ value: "+12% this month", positive: true }}
+            loading={qrStatsLoading || qrStatsFetching}
           />
           <StatsCard
             title="Scans Today"
             value={stats.scansToday}
             icon={TrendingUp}
             description="Last 24 hours"
+            loading={qrStatsLoading || qrStatsFetching}
           />
           <StatsCard
             title="Unique Visitors"
             value={stats.uniqueVisitors}
             icon={Users}
             description="All time"
+            loading={qrStatsLoading || qrStatsFetching}
           />
         </div>
       </div>

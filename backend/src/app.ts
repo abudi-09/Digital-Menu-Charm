@@ -2,6 +2,8 @@ import express, { Request, Response } from "express";
 import cors from "cors";
 import menuRoutes from "./routes/menuRoutes";
 import adminAuthRoutes from "./routes/adminAuthRoutes";
+import qrRoutes from "./routes/qrRoutes";
+import qrPublicRoutes from "./routes/qrPublicRoutes";
 
 const app = express();
 
@@ -14,5 +16,7 @@ app.use(express.urlencoded({ limit: "10mb", extended: true }));
 app.get("/health", (_req: Request, res: Response) => res.json({ ok: true }));
 app.use("/api", menuRoutes);
 app.use("/api/admin", adminAuthRoutes);
+app.use("/api/admin", qrRoutes);
+app.use("/qr", qrPublicRoutes);
 
 export default app;
