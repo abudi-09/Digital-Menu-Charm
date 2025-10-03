@@ -58,24 +58,24 @@ const Menu = () => {
     setTimeout(() => setSelectedItem(null), 300);
   };
 
-  const sourceItems =
-    !isError && backendItems
-      ? (backendItems.map((b: BackendMenuItem) => ({
-          // map backend _id to frontend id for UI compatibility
-          id: b._id || b.id || crypto.randomUUID(),
-          name: b.name,
-          category: b.category,
-          price: b.price,
-          description: b.description,
-          fullDescription: b.fullDescription || "",
-          image: b.image || "",
-          ingredients: b.ingredients || [],
-          allergens: b.allergens || [],
-          prepTime: b.prepTime || "",
-          portionSize: b.portionSize || "",
-          available: b.available,
-        })) as MenuItem[])
-      : staticMenuItems;
+  // Use backend items only. If backend is unreachable or returns nothing,
+  // do not fall back to bundled static data — show empty list instead.
+  const sourceItems = backendItems
+    ? (backendItems.map((b: BackendMenuItem) => ({
+        id: b._id || b.id || crypto.randomUUID(),
+        name: b.name,
+        category: b.category,
+        price: b.price,
+        description: b.description,
+        fullDescription: b.fullDescription || "",
+        image: b.image || "",
+        ingredients: b.ingredients || [],
+        allergens: b.allergens || [],
+        prepTime: b.prepTime || "",
+        portionSize: b.portionSize || "",
+        available: b.available,
+      })) as MenuItem[])
+    : [];
 
   const filteredItems = sourceItems.filter(
     (item) => item.category === activeCategory
