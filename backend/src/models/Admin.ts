@@ -1,8 +1,11 @@
 import { Schema, model, Document } from "mongoose";
 
 export interface AdminDocument extends Document {
-  username: string;
+  fullName: string;
   email: string;
+  phoneNumber: string;
+  emailVerified: boolean;
+  phoneVerified: boolean;
   password: string;
   role: "admin";
   createdAt: Date;
@@ -11,16 +14,22 @@ export interface AdminDocument extends Document {
 
 const adminSchema = new Schema<AdminDocument>(
   {
-    username: {
+    fullName: {
       type: String,
       required: true,
       trim: true,
+      maxlength: 120,
     },
     email: {
       type: String,
       required: true,
       unique: true,
       lowercase: true,
+      trim: true,
+    },
+    phoneNumber: {
+      type: String,
+      required: true,
       trim: true,
     },
     password: {
@@ -32,6 +41,14 @@ const adminSchema = new Schema<AdminDocument>(
       type: String,
       enum: ["admin"],
       default: "admin",
+    },
+    emailVerified: {
+      type: Boolean,
+      default: false,
+    },
+    phoneVerified: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true }

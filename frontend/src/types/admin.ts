@@ -1,9 +1,13 @@
-export interface AdminUser {
+export interface AdminProfile {
   id: string;
+  fullName: string;
   email: string;
-  name: string;
-  phone: string;
-  role: "admin" | "staff";
+  phoneNumber: string;
+  role: "admin";
+  emailVerified: boolean;
+  phoneVerified: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface MenuStats {

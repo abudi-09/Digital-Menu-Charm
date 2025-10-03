@@ -4,9 +4,10 @@ import bcrypt from "bcrypt";
 import { Admin } from "../src/models/Admin";
 
 const DEFAULT_ADMIN = {
-  username: "superadmin",
+  fullName: "Super Admin",
   email: "admin@grandvista.com",
   password: "Admin@123",
+  phoneNumber: "+251704592990",
   role: "admin" as const,
 };
 
@@ -61,6 +62,10 @@ const seedAdmin = async () => {
     if (existing) {
       console.info("Admin already exists. Updating password...");
       existing.password = await bcrypt.hash(DEFAULT_ADMIN.password, 10);
+      existing.fullName = DEFAULT_ADMIN.fullName;
+      existing.phoneNumber = DEFAULT_ADMIN.phoneNumber;
+      existing.emailVerified = true;
+      existing.phoneVerified = true;
       await existing.save();
       console.info("Admin password updated successfully");
       return;
@@ -69,10 +74,13 @@ const seedAdmin = async () => {
     const hashedPassword = await bcrypt.hash(DEFAULT_ADMIN.password, 10);
 
     await Admin.create({
-      username: DEFAULT_ADMIN.username,
+      fullName: DEFAULT_ADMIN.fullName,
       email: DEFAULT_ADMIN.email,
       password: hashedPassword,
+      phoneNumber: DEFAULT_ADMIN.phoneNumber,
       role: DEFAULT_ADMIN.role,
+      emailVerified: true,
+      phoneVerified: true,
     });
 
     console.info("Admin user created successfully");
