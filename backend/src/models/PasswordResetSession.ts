@@ -9,8 +9,8 @@ export type PasswordResetStatus =
 
 export interface PasswordResetSessionDocument extends Document {
   adminId: Types.ObjectId;
-  emailTokenHash: string;
-  emailTokenExpiresAt: Date;
+  emailTokenHash?: string;
+  emailTokenExpiresAt?: Date;
   emailVerified: boolean;
   smsCodeHash?: string;
   smsCodeExpiresAt?: Date;
@@ -31,11 +31,10 @@ const passwordResetSessionSchema = new Schema<PasswordResetSessionDocument>(
     },
     emailTokenHash: {
       type: String,
-      required: true,
+      // optional so SMS-only flows can create a session without an email token
     },
     emailTokenExpiresAt: {
       type: Date,
-      required: true,
     },
     emailVerified: {
       type: Boolean,
