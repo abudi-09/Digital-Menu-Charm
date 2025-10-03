@@ -18,12 +18,20 @@ const Index = () => {
   };
 
   // Always show the predefined categories. Counts come from backend items.
+  // useMenuQuery may return either a plain array (legacy) or a paged response
+  // { items, total, page, limit, totalPages } depending on the hook parameters.
   const { data: backendItems } = useMenuQuery();
   type BackendMenuItem = { _id: string; category?: string } & Record<
     string,
     unknown
   >;
-  const items = (backendItems ?? []) as BackendMenuItem[];
+
+  // Normalize to an array for the UI. If backendItems is a paged response, use
+  // its `items` property; otherwise assume it's already an array.
+  type Paged<T> = { items: T[]; total?: number; page?: number; limit?: number };
+  const items: BackendMenuItem[] = Array.isArray(backendItems)
+    ? backendItems
+    : (backendItems && (backendItems as Paged<BackendMenuItem>).items) || [];
 
   const predefined = [
     "Starters",
