@@ -31,8 +31,12 @@ export const loginAdmin = async (email: string, password: string) => {
     token,
     admin: {
       id: admin.id,
+      fullName: admin.fullName,
       email: admin.email,
+      phoneNumber: admin.phoneNumber,
       role: admin.role,
+      emailVerified: admin.emailVerified,
+      phoneVerified: admin.phoneVerified,
     },
   };
 };

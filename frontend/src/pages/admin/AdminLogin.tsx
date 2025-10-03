@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
@@ -38,13 +38,21 @@ const AdminLogin = () => {
     mutationFn: (payload: LoginFormData) =>
       api.post<{
         token: string;
-        admin: { id: string; email: string; role: string };
+        admin: {
+          id: string;
+          fullName: string;
+          email: string;
+          phoneNumber: string;
+          role: string;
+          emailVerified: boolean;
+          phoneVerified: boolean;
+        };
       }>("/admin/login", payload),
     onSuccess: ({ data }) => {
       setToken(data.token);
       toast({
         title: "Login successful",
-        description: `Welcome back, ${data.admin.email}`,
+        description: `Welcome back, ${data.admin.fullName || data.admin.email}`,
       });
       navigate("/admin/dashboard", { replace: true });
     },
@@ -133,6 +141,14 @@ const AdminLogin = () => {
             {loginMutation.isPending ? "Logging in..." : "Login"}
           </Button>
         </form>
+        <div className="mt-6 text-center">
+          <Link
+            to="/admin/forgot-password"
+            className="text-sm text-muted-foreground hover:text-foreground"
+          >
+            Forgot password?
+          </Link>
+        </div>
       </Card>
     </div>
   );
