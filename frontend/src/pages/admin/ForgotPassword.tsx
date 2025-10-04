@@ -6,12 +6,16 @@ import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label as UiLabel } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   usePasswordResetIdentity,
   usePasswordResetRequest,
+  useVerifyResetSms,
 } from "@/hooks/usePasswordReset";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Form,
   FormControl,
@@ -32,6 +36,11 @@ const ForgotPassword = () => {
   const { toast } = useToast();
   const identity = usePasswordResetIdentity();
   const requestReset = usePasswordResetRequest();
+  const verifySms = useVerifyResetSms();
+  const navigate = useNavigate();
+
+  const [phoneSessionId, setPhoneSessionId] = useState<string | null>(null);
+  const [smsCode, setSmsCode] = useState("");
 
   const form = useForm<RequestFormValues>({
     resolver: zodResolver(requestSchema),
@@ -45,6 +54,17 @@ const ForgotPassword = () => {
   const handleRequest = form.handleSubmit((values) => {
     requestReset.mutate(values, {
       onSuccess: (data) => {
+        // If user requested phone (SMS) method, the response includes sessionId
+        if (values.method === "phone" && data.sessionId) {
+          setPhoneSessionId(data.sessionId);
+          toast({
+            title: "Verification sent",
+            description:
+              data.message ?? "We've sent an SMS with a verification code.",
+          });
+          return;
+        }
+
         toast({
           title: "Reset link sent",
           description:
@@ -66,6 +86,30 @@ const ForgotPassword = () => {
       },
     });
   });
+
+  const handleSmsSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!phoneSessionId || smsCode.length < 4) return;
+
+    verifySms.mutate(
+      { sessionId: phoneSessionId, code: smsCode },
+      {
+        onSuccess: () => {
+          toast({
+            title: "Phone verified",
+            description: "You can now set a new password.",
+          });
+          navigate(`/admin/set-password?sessionId=${phoneSessionId}`);
+        },
+        onError: (error) => {
+          const description =
+            (error as { response?: { data?: { message?: string } } }).response
+              ?.data?.message ?? "Verification code is invalid or expired.";
+          toast({ title: "Code error", description, variant: "destructive" });
+        },
+      }
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gradient-hero flex items-center justify-center p-4">
@@ -194,6 +238,52 @@ const ForgotPassword = () => {
             </div>
           </form>
         </Form>
+
+        {phoneSessionId && (
+          <div className="mt-6">
+            <form onSubmit={handleSmsSubmit} className="space-y-4">
+              <div className="text-center space-y-2">
+                <MessageSquare className="mx-auto h-8 w-8 text-primary" />
+                <p className="font-medium">Enter the code sent to your phone</p>
+                <p className="text-sm text-muted-foreground">
+                  If you didn't receive the code, try again or check your
+                  number.
+                </p>
+              </div>
+              <div>
+                <UiLabel htmlFor="otp">Verification Code</UiLabel>
+                <Input
+                  id="otp"
+                  inputMode="numeric"
+                  pattern="\d*"
+                  maxLength={6}
+                  value={smsCode}
+                  onChange={(e) =>
+                    setSmsCode(e.target.value.replace(/[^\d]/g, ""))
+                  }
+                  placeholder="000000"
+                  className="text-center text-lg tracking-[0.4em]"
+                  disabled={verifySms.isPending}
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  type="submit"
+                  className="flex-1"
+                  disabled={verifySms.isPending || smsCode.length < 4}
+                >
+                  {verifySms.isPending ? "Verifying..." : "Verify code"}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setPhoneSessionId(null)}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </div>
+        )}
       </Card>
     </div>
   );

@@ -88,11 +88,6 @@ export const initiatePasswordReset = async (
 
   // method === 'phone'
   const phone = normalizePhoneNumber(value);
-  if (!notificationService.isSmsServiceConfigured()) {
-    throw new Error(
-      "SMS password reset is temporarily unavailable. Please reset via email instead."
-    );
-  }
   const admin = await Admin.findOne({ phoneNumber: { $exists: true } }).exec();
   // find by normalized phone
   const admins = await Admin.find().exec();
@@ -117,18 +112,38 @@ export const initiatePasswordReset = async (
     expiresAt: buildDateFromMinutes(SESSION_EXPIRY_MINUTES),
   });
 
-  // send SMS
-  await notificationService.sendSms(
-    matched.phoneNumber as string,
-    `Your password reset code is ${code}. It expires in ${SMS_CODE_EXPIRY_MINUTES} minutes.`
-  );
+  const smsConfigured = notificationService.isSmsServiceConfigured();
 
-  return {
+  if (smsConfigured) {
+    // send SMS for production usage
+    await notificationService.sendSms(
+      matched.phoneNumber as string,
+      `Your password reset code is ${code}. It expires in ${SMS_CODE_EXPIRY_MINUTES} minutes.`
+    );
+  } else {
+    // Dev fallback: log the code so developers can test without Twilio
+    console.warn(
+      `Twilio not configured - password reset code for ${matched.phoneNumber}: ${code}`
+    );
+  }
+
+  const response: {
+    sessionId: string;
+    maskedPhone: string | null;
+    debugCode?: string;
+  } = {
     sessionId: session.id,
     maskedPhone: matched.phoneNumber
       ? `••••${matched.phoneNumber.slice(-4)}`
       : null,
   };
+
+  // Only include the raw code in non-production for debugging/testing
+  if (!smsConfigured && process.env.NODE_ENV !== "production") {
+    response.debugCode = code;
+  }
+
+  return response;
 };
 
 const ensureSession = async (sessionId: string) => {
@@ -229,7 +244,9 @@ export const verifyEmailForReset = async (sessionId: string, token: string) => {
 export const verifySmsForReset = async (sessionId: string, code: string) => {
   const session = await ensureSession(sessionId);
 
-  if (!session.emailVerified) {
+  // If the session includes an email token, require email verification first.
+  // For SMS-only sessions (no emailTokenHash), allow direct SMS verification.
+  if (session.emailTokenHash && !session.emailVerified) {
     throw new Error("Email verification must be completed first");
   }
 
@@ -262,9 +279,18 @@ export const completePasswordReset = async (
 ) => {
   const session = await ensureSession(sessionId);
 
-  if (!session.emailVerified || !session.smsVerified) {
+  // Only require verifications that are part of the session flow.
+  const emailRequired = Boolean(session.emailTokenHash);
+  const smsRequired = Boolean(session.smsCodeHash);
+
+  if (emailRequired && !session.emailVerified) {
     throw new Error(
-      "Email and SMS verification must be completed before resetting password"
+      "Email verification must be completed before resetting password"
+    );
+  }
+  if (smsRequired && !session.smsVerified) {
+    throw new Error(
+      "SMS verification must be completed before resetting password"
     );
   }
 
