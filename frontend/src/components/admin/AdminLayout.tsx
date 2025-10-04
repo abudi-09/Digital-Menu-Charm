@@ -12,18 +12,25 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { clearToken } from "@/lib/auth";
+import { useTranslation } from "react-i18next";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 const navItems = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/admin/dashboard" },
-  { icon: Utensils, label: "Menu Management", path: "/admin/menu" },
-  { icon: QrCode, label: "QR Code", path: "/admin/qr" },
-  { icon: User, label: "Profile", path: "/admin/profile" },
+  {
+    icon: LayoutDashboard,
+    labelKey: "admin.dashboard",
+    path: "/admin/dashboard",
+  },
+  { icon: Utensils, labelKey: "admin.menu_mgmt", path: "/admin/menu" },
+  { icon: QrCode, labelKey: "admin.qr", path: "/admin/qr" },
+  { icon: User, labelKey: "admin.profile", path: "/admin/profile" },
 ] as const;
 
 export const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation();
 
   const handleLogout = () => {
     clearToken();
@@ -47,7 +54,7 @@ export const AdminLayout = () => {
         onClick={() => setSidebarOpen(false)}
       >
         <item.icon className="w-5 h-5" />
-        <span className="font-medium">{item.label}</span>
+        <span className="font-medium">{t(item.labelKey)}</span>
       </NavLink>
     );
   };
@@ -74,10 +81,11 @@ export const AdminLayout = () => {
         <div className="p-6 border-b border-border flex items-center justify-between">
           <div>
             <h2 className="text-xl font-bold font-serif text-foreground">
-              Admin Panel
+              {t("admin.panel")}
             </h2>
             <p className="text-xs text-muted-foreground">Grand Vista Hotel</p>
           </div>
+          <LanguageSwitcher compact className="hidden lg:inline-flex" />
           <Button
             variant="ghost"
             size="icon"
@@ -97,13 +105,16 @@ export const AdminLayout = () => {
 
         {/* Logout */}
         <div className="p-4 border-t border-border">
+          <div className="mb-3 lg:hidden">
+            <LanguageSwitcher compact />
+          </div>
           <Button
             variant="outline"
             className="w-full justify-start gap-3"
             onClick={handleLogout}
           >
             <LogOut className="w-5 h-5" />
-            Logout
+            {t("admin.logout")}
           </Button>
         </div>
       </aside>
@@ -119,7 +130,10 @@ export const AdminLayout = () => {
           >
             <Menu className="w-5 h-5" />
           </Button>
-          <h1 className="text-lg font-bold font-serif">Admin Panel</h1>
+          <h1 className="text-lg font-bold font-serif">{t("admin.panel")}</h1>
+          <div className="ml-auto">
+            <LanguageSwitcher compact />
+          </div>
         </header>
 
         {/* Page Content */}

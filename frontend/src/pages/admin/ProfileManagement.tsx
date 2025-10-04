@@ -17,6 +17,7 @@ import {
   useUpdateAdminProfile,
   useChangePassword,
 } from "@/hooks/useAdminProfile";
+import { useTranslation } from "react-i18next";
 
 const profileSchema = z.object({
   fullName: z
@@ -73,6 +74,7 @@ const ProfileManagement = () => {
   const { toast } = useToast();
   const { data: profile, isLoading, isRefetching } = useAdminProfile();
   const updateProfile = useUpdateAdminProfile();
+  const { t } = useTranslation();
 
   const {
     register,
@@ -112,28 +114,38 @@ const ProfileManagement = () => {
   }, [profile, reset]);
 
   const onProfileSubmit = (values: ProfileFormData) => {
-    updateProfile.mutate(values, {
-      onSuccess: (data) => {
-        toast({ title: "Profile updated", description: data.message });
-        reset({
-          fullName: data.profile.fullName,
-          email: data.profile.email,
-          phoneNumber: data.profile.phoneNumber,
-        });
-        setIsEditingProfile(false);
+    updateProfile.mutate(
+      {
+        fullName: values.fullName,
+        email: values.email,
+        phoneNumber: values.phoneNumber,
       },
-      onError: (error) => {
-        const description = isAxiosError(error)
-          ? error.response?.data?.message ?? "Unable to update profile"
-          : "Unable to update profile";
+      {
+        onSuccess: (data) => {
+          toast({
+            title: t("profile.toast_updated"),
+            description: data.message,
+          });
+          reset({
+            fullName: data.profile.fullName,
+            email: data.profile.email,
+            phoneNumber: data.profile.phoneNumber,
+          });
+          setIsEditingProfile(false);
+        },
+        onError: (error) => {
+          const description = isAxiosError(error)
+            ? error.response?.data?.message ?? t("profile.toast_unable_update")
+            : t("profile.toast_unable_update");
 
-        toast({
-          title: "Update failed",
-          description,
-          variant: "destructive",
-        });
-      },
-    });
+          toast({
+            title: t("profile.toast_update_failed"),
+            description,
+            variant: "destructive",
+          });
+        },
+      }
+    );
   };
 
   const onPasswordSubmit = (values: PasswordFormData) => {
@@ -162,11 +174,9 @@ const ProfileManagement = () => {
     <div className="p-4 md:p-8 space-y-8 animate-fade-in max-w-4xl">
       <div>
         <h1 className="text-3xl md:text-4xl font-bold font-serif text-foreground mb-2">
-          Profile Management
+          {t("profile.title")}
         </h1>
-        <p className="text-muted-foreground">
-          Manage your account information and security settings
-        </p>
+        <p className="text-muted-foreground">{t("profile.subtitle")}</p>
       </div>
 
       {isLoading && !profile ? (
@@ -180,10 +190,10 @@ const ProfileManagement = () => {
               </div>
               <div>
                 <h2 className="text-xl font-semibold font-serif text-foreground">
-                  Profile Information
+                  {t("profile.profile_info")}
                 </h2>
                 <p className="text-sm text-muted-foreground">
-                  Update your personal and contact details
+                  {t("profile.profile_info_desc")}
                 </p>
               </div>
             </div>
@@ -200,7 +210,7 @@ const ProfileManagement = () => {
               className="space-y-6"
             >
               <div className="space-y-2">
-                <Label htmlFor="fullName">Full Name</Label>
+                <Label htmlFor="fullName">{t("profile.full_name")}</Label>
                 <Input
                   id="fullName"
                   placeholder="Jane Doe"
@@ -217,7 +227,7 @@ const ProfileManagement = () => {
 
               <div className="space-y-2">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <Label htmlFor="email">Email Address</Label>
+                  <Label htmlFor="email">{t("profile.email")}</Label>
                   <div className="flex items-center gap-2"></div>
                 </div>
                 <Input
@@ -237,7 +247,7 @@ const ProfileManagement = () => {
 
               <div className="space-y-2">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <Label htmlFor="phoneNumber">Phone Number</Label>
+                  <Label htmlFor="phoneNumber">{t("profile.phone")}</Label>
                   <div className="flex items-center gap-2"></div>
                 </div>
                 <Input
@@ -261,7 +271,9 @@ const ProfileManagement = () => {
                   className="bg-primary text-primary-foreground hover:bg-primary/90"
                   disabled={isSavingProfile}
                 >
-                  {isSavingProfile ? "Saving..." : "Save Changes"}
+                  {isSavingProfile
+                    ? t("profile.saving")
+                    : t("profile.save_changes")}
                 </Button>
                 <Button
                   type="button"
@@ -275,28 +287,28 @@ const ProfileManagement = () => {
                     setIsEditingProfile(false);
                   }}
                 >
-                  Cancel
+                  {t("profile.cancel")}
                 </Button>
               </div>
             </form>
           ) : (
             <div className="space-y-6">
               <div>
-                <Label>Full Name</Label>
+                <Label>{t("profile.full_name")}</Label>
                 <div className="rounded-md bg-muted/20 p-3 text-sm text-foreground">
                   {profile?.fullName ?? "—"}
                 </div>
               </div>
 
               <div>
-                <Label>Email Address</Label>
+                <Label>{t("profile.email")}</Label>
                 <div className="rounded-md bg-muted/20 p-3 text-sm text-foreground">
                   {profile?.email ?? "—"}
                 </div>
               </div>
 
               <div>
-                <Label>Phone Number</Label>
+                <Label>{t("profile.phone")}</Label>
                 <div className="rounded-md bg-muted/20 p-3 text-sm text-foreground">
                   {profile?.phoneNumber ?? "—"}
                 </div>
@@ -308,7 +320,7 @@ const ProfileManagement = () => {
                   className="bg-primary text-primary-foreground hover:bg-primary/90"
                   onClick={() => setIsEditingProfile(true)}
                 >
-                  Edit Profile
+                  {t("profile.edit_profile")}
                 </Button>
               </div>
             </div>
@@ -327,10 +339,10 @@ const ProfileManagement = () => {
           </div>
           <div>
             <h2 className="text-xl font-semibold font-serif text-foreground">
-              Change Password
+              {t("profile.change_password")}
             </h2>
             <p className="text-sm text-muted-foreground">
-              Change your password
+              {t("profile.change_password_desc")}
             </p>
           </div>
         </div>
@@ -340,7 +352,7 @@ const ProfileManagement = () => {
               onClick={() => setIsChangingPassword(true)}
               className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
-              Change Password
+              {t("profile.change_password")}
             </Button>
           </div>
         ) : (
@@ -388,7 +400,7 @@ const ProfileManagement = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="newPassword">New Password</Label>
+              <Label htmlFor="newPassword">{t("profile.new_password")}</Label>
               <Input
                 id="newPassword"
                 type="password"
@@ -405,7 +417,9 @@ const ProfileManagement = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm New Password</Label>
+              <Label htmlFor="confirmPassword">
+                {t("profile.confirm_password")}
+              </Label>
               <Input
                 id="confirmPassword"
                 type="password"
@@ -422,9 +436,11 @@ const ProfileManagement = () => {
             </div>
 
             <div className="rounded-lg bg-muted/50 p-4 text-xs text-muted-foreground">
-              <p className="font-semibold">Password requirements</p>
-              <p>• Minimum 8 characters</p>
-              <p>• Include uppercase, lowercase, numbers, and symbols</p>
+              <p className="font-semibold">
+                {t("profile.password_requirements")}
+              </p>
+              <p>{t("profile.pw_req_1")}</p>
+              <p>{t("profile.pw_req_2")}</p>
             </div>
 
             <div className="flex gap-2">
@@ -432,14 +448,14 @@ const ProfileManagement = () => {
                 type="submit"
                 className="bg-primary text-primary-foreground hover:bg-primary/90"
               >
-                Save Changes
+                {t("profile.save_changes")}
               </Button>
               <Button
                 type="button"
                 variant="ghost"
                 onClick={() => setIsChangingPassword(false)}
               >
-                Cancel
+                {t("profile.cancel")}
               </Button>
             </div>
           </form>

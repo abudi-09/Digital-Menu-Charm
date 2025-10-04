@@ -1,12 +1,18 @@
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils";
 
 interface CategoryTabsProps {
   categories: string[];
   activeCategory: string;
   onCategoryChange: (category: string) => void;
+  labelFor?: (category: string) => string;
 }
 
-export const CategoryTabs = ({ categories, activeCategory, onCategoryChange }: CategoryTabsProps) => {
+export const CategoryTabs = ({
+  categories,
+  activeCategory,
+  onCategoryChange,
+  labelFor,
+}: CategoryTabsProps) => {
   return (
     <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border py-3 px-4 overflow-x-auto">
       <div className="flex gap-2 min-w-max">
@@ -21,7 +27,7 @@ export const CategoryTabs = ({ categories, activeCategory, onCategoryChange }: C
                 : "bg-muted text-muted-foreground hover:bg-muted/80"
             )}
           >
-            {category}
+            {labelFor ? labelFor(category) : category}
           </button>
         ))}
       </div>

@@ -1,17 +1,46 @@
 import { Request, Response } from "express";
 import * as menuService from "../services/menuService";
 
+const pickLocale = (
+  value: string | Record<string, string> | undefined,
+  lang: string | undefined
+): string => {
+  if (!value) return "";
+  if (typeof value === "string") return value;
+  const locale = (lang || "en").toLowerCase();
+  return value[locale] || value.en || Object.values(value)[0] || "";
+};
+
+const pickLocaleArray = (
+  value: string[] | Record<string, string[]> | undefined,
+  lang: string | undefined
+): string[] => {
+  if (!value) return [];
+  if (Array.isArray(value)) return value;
+  const locale = (lang || "en").toLowerCase();
+  return value[locale] || value.en || Object.values(value)[0] || [];
+};
+
 export const getMenu = async (req: Request, res: Response) => {
-  const { category, page, limit } = req.query as {
+  const { category, page, limit, lang } = req.query as {
     category?: string;
     page?: string;
     limit?: string;
+    lang?: string;
   };
 
   // If no pagination query params are provided, preserve legacy behavior for backward compatibility
   if (!page && !limit && !category) {
     const items = await menuService.listMenuItems();
-    return res.json(items);
+    const mapped = items.map((i) => ({
+      ...i.toObject(),
+      name: pickLocale(i.name as any, lang),
+      description: pickLocale(i.description as any, lang),
+      fullDescription: pickLocale(i.fullDescription as any, lang),
+      ingredients: pickLocaleArray(i.ingredients as any, lang),
+      allergens: pickLocaleArray(i.allergens as any, lang),
+    }));
+    return res.json(mapped);
   }
 
   const paged = await menuService.listMenuPaged({
@@ -19,7 +48,18 @@ export const getMenu = async (req: Request, res: Response) => {
     page: page ? Number(page) : undefined,
     limit: limit ? Number(limit) : undefined,
   });
-  return res.json(paged);
+  const mapped = {
+    ...paged,
+    items: paged.items.map((i) => ({
+      ...i.toObject(),
+      name: pickLocale(i.name as any, lang),
+      description: pickLocale(i.description as any, lang),
+      fullDescription: pickLocale(i.fullDescription as any, lang),
+      ingredients: pickLocaleArray(i.ingredients as any, lang),
+      allergens: pickLocaleArray(i.allergens as any, lang),
+    })),
+  };
+  return res.json(mapped);
 };
 
 export const postMenu = async (req: Request, res: Response) => {

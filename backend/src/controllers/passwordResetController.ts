@@ -57,11 +57,17 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
   try {
     const { method, value } = forgotPasswordSchema.parse(req.body);
     const result = await initiatePasswordReset(method, value);
+    const maskedEmail = (
+      "maskedEmail" in result ? (result as any).maskedEmail : null
+    ) as string | null;
+    const maskedPhone = (
+      "maskedPhone" in result ? (result as any).maskedPhone : null
+    ) as string | null;
     return res.status(200).json({
       message: "Password reset initiated",
       sessionId: result.sessionId,
-      maskedEmail: result.maskedEmail,
-      maskedPhone: result.maskedPhone,
+      maskedEmail,
+      maskedPhone,
     });
   } catch (error) {
     if (error instanceof z.ZodError) {

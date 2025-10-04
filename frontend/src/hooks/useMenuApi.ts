@@ -9,9 +9,26 @@ export interface MenuQueryParams {
   category?: string; // undefined or 'all' means no filter
   page?: number; // defaults in backend
   limit?: number; // defaults in backend
+  lang?: string; // optional language code: 'en' | 'am'
 }
 
 type PagedResponse<T> = {
+  map(
+    arg0: (b: Omit<FrontendMenuItem, "id"> & { _id?: string; id?: string }) => {
+      id: string;
+      name: string;
+      category: string;
+      price: number;
+      description: string;
+      fullDescription: string;
+      image: string;
+      ingredients: string[];
+      allergens: string[];
+      prepTime: string;
+      portionSize: string;
+      available: boolean;
+    }
+  ): FrontendMenuItem[];
   items: T[];
   total: number;
   page: number;
@@ -26,11 +43,12 @@ export const useMenuQuery = (params: MenuQueryParams = {}) =>
       params.category ?? "all",
       params.page ?? 1,
       params.limit ?? 5,
+      params.lang ?? "en",
     ],
     queryFn: async () => {
-      const { category, page, limit } = params;
+      const { category, page, limit, lang } = params;
       const { data } = await api.get<PagedResponse<BackendMenuItem>>("/menu", {
-        params: { category, page, limit },
+        params: { category, page, limit, lang },
       });
       return data;
     },
@@ -46,11 +64,21 @@ export const useCategoriesQuery = () =>
     staleTime: 5 * 60 * 1000,
   });
 
+export const useAllMenuItems = (lang?: string) =>
+  useQuery<BackendMenuItem[]>({
+    queryKey: ["menu-items-all", lang ?? "en"],
+    queryFn: async () => {
+      const { data } = await api.get<BackendMenuItem[]>("/menu", {
+        params: { lang },
+      });
+      return data;
+    },
+  });
+
 export const useCreateMenuItem = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (payload: Partial<BackendMenuItem>) =>
-      api.post("/menu", payload),
+    mutationFn: (payload: unknown) => api.post("/menu", payload),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["menu-items"] });
     },
@@ -60,13 +88,8 @@ export const useCreateMenuItem = () => {
 export const useUpdateMenuItem = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({
-      id,
-      payload,
-    }: {
-      id: string;
-      payload: Partial<BackendMenuItem>;
-    }) => api.put(`/menu/${id}`, payload),
+    mutationFn: ({ id, payload }: { id: string; payload: unknown }) =>
+      api.put(`/menu/${id}`, payload),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["menu-items"] });
     },

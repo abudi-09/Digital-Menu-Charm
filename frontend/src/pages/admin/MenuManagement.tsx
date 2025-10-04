@@ -45,6 +45,7 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
+import { useTranslation } from "react-i18next";
 
 const MenuManagement = () => {
   // Pagination & filtering state
@@ -52,13 +53,15 @@ const MenuManagement = () => {
   const [page, setPage] = useState<number>(1);
   const [limit] = useState<number>(5);
 
+  const { i18n, t } = useTranslation();
+
   // Load paginated items from backend. Passing params ensures paged response shape.
   const {
     data: paged,
     isLoading,
     isFetching,
     isError,
-  } = useMenuQuery({ category, page, limit });
+  } = useMenuQuery({ category, page, limit, lang: i18n.language });
   const { data: categories } = useCategoriesQuery();
   const [searchQuery, setSearchQuery] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -120,15 +123,19 @@ const MenuManagement = () => {
       deleteMutation.mutate(itemToDelete.id, {
         onSuccess: () => {
           toast({
-            title: "Item deleted",
-            description: `${itemToDelete.name} has been removed from the menu`,
+            title: t("menuMgmt.toast_deleted"),
+            description: t("menuMgmt.toast_deleted_desc", {
+              name: itemToDelete.name,
+            }),
           });
           setItemToDelete(null);
         },
         onError: () => {
           toast({
-            title: "Delete failed",
-            description: `Could not delete ${itemToDelete.name}`,
+            title: t("menuMgmt.toast_delete_failed"),
+            description: t("menuMgmt.toast_unable_delete", {
+              name: itemToDelete.name,
+            }),
             variant: "destructive",
           });
         },
@@ -136,7 +143,11 @@ const MenuManagement = () => {
     }
   };
 
-  const handleFormSubmit = (data: Partial<MenuItem>) => {
+  type SubmitPayload = { uiName?: string; name?: string } & Record<
+    string,
+    unknown
+  >;
+  const handleFormSubmit = (data: SubmitPayload) => {
     if (selectedItem) {
       // Update existing item
       updateMutation.mutate(
@@ -144,15 +155,19 @@ const MenuManagement = () => {
         {
           onSuccess: () => {
             toast({
-              title: "Item updated",
-              description: `${data.name} has been updated successfully`,
+              title: t("menuMgmt.toast_updated"),
+              description: t("menuMgmt.toast_updated_desc", {
+                name: data.uiName || data.name,
+              }),
             });
             setSelectedItem(null);
           },
           onError: () => {
             toast({
-              title: "Update failed",
-              description: `Could not update ${data.name}`,
+              title: t("menuMgmt.toast_update_failed"),
+              description: t("menuMgmt.toast_unable_update", {
+                name: data.uiName || data.name,
+              }),
               variant: "destructive",
             });
           },
@@ -163,14 +178,18 @@ const MenuManagement = () => {
       createMutation.mutate(data, {
         onSuccess: () => {
           toast({
-            title: "Item added",
-            description: `${data.name} has been added to the menu`,
+            title: t("menuMgmt.toast_created"),
+            description: t("menuMgmt.toast_created_desc", {
+              name: data.uiName || data.name,
+            }),
           });
         },
         onError: () => {
           toast({
-            title: "Create failed",
-            description: `Could not create ${data.name}`,
+            title: t("menuMgmt.toast_create_failed"),
+            description: t("menuMgmt.toast_unable_create", {
+              name: data.uiName || data.name,
+            }),
             variant: "destructive",
           });
         },
@@ -198,44 +217,48 @@ const MenuManagement = () => {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl md:text-4xl font-bold font-serif text-foreground mb-2">
-            Menu Management
+            {t("menuMgmt.title")}
           </h1>
-          <p className="text-muted-foreground">
-            Manage your restaurant menu items
-          </p>
+          <p className="text-muted-foreground">{t("menuMgmt.subtitle")}</p>
         </div>
         <Button
           onClick={handleAddItem}
           className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2"
         >
           <Plus className="w-5 h-5" />
-          Add Item
+          {t("menuMgmt.add_item")}
         </Button>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <StatsCard
-          title="Total Items"
+          title={t("menuMgmt.total_items")}
           value={stats.totalItems}
           icon={Package}
           description={
-            category === "all" ? "All items" : `Filtered by ${category}`
+            category === "all"
+              ? t("menuMgmt.all_items")
+              : t("menuMgmt.filtered_by", {
+                  category: t(`menuMgmt.categories_values.${category}`, {
+                    defaultValue: category,
+                  }),
+                })
           }
           loading={isLoading || isFetching}
         />
         <StatsCard
-          title="Categories"
+          title={t("menuMgmt.categories")}
           value={stats.totalCategories}
           icon={Grid3x3}
-          description="Menu categories"
+          description={t("menuMgmt.menu_categories")}
           loading={isLoading || isFetching}
         />
         <StatsCard
-          title="Out of Stock"
+          title={t("menuMgmt.out_of_stock")}
           value={stats.outOfStock}
           icon={AlertCircle}
-          description="Unavailable items"
+          description={t("menuMgmt.empty")}
           loading={isLoading || isFetching}
         />
       </div>
@@ -245,7 +268,7 @@ const MenuManagement = () => {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
           <Input
-            placeholder="Search menu items..."
+            placeholder={t("menuMgmt.search_placeholder")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
@@ -260,15 +283,20 @@ const MenuManagement = () => {
             }}
           >
             <SelectTrigger className="w-full md:w-64">
-              <SelectValue placeholder="All Categories" />
+              <SelectValue placeholder={t("menuMgmt.filters_all")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              {(categories ?? []).map((c) => (
-                <SelectItem key={c} value={c}>
-                  {c}
-                </SelectItem>
-              ))}
+              <SelectItem value="all">{t("menuMgmt.filters_all")}</SelectItem>
+              {(categories ?? []).map((c) => {
+                const label = t(`menuMgmt.categories_values.${c}`, {
+                  defaultValue: c,
+                });
+                return (
+                  <SelectItem key={c} value={c}>
+                    {label}
+                  </SelectItem>
+                );
+              })}
             </SelectContent>
           </Select>
         </div>
@@ -345,8 +373,8 @@ const MenuManagement = () => {
                         }
                       >
                         {(item as MenuItem).available
-                          ? "Available"
-                          : "Out of Stock"}
+                          ? t("menuMgmt.available")
+                          : t("menuMgmt.out_of_stock")}
                       </Badge>
                     </div>
                   )}
@@ -360,7 +388,7 @@ const MenuManagement = () => {
                         className="gap-2"
                       >
                         <Edit className="w-4 h-4" />
-                        Edit
+                        {t("menuMgmt.edit")}
                       </Button>
                       <Button
                         variant="outline"
@@ -369,7 +397,7 @@ const MenuManagement = () => {
                         className="gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
                       >
                         <Trash2 className="w-4 h-4" />
-                        Delete
+                        {t("menuMgmt.delete")}
                       </Button>
                     </div>
                   )}
@@ -384,9 +412,7 @@ const MenuManagement = () => {
             <div className="text-center py-12">
               <Package className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground">
-                {searchQuery
-                  ? "No items found matching your search"
-                  : "No menu items yet"}
+                {searchQuery ? t("menuMgmt.empty_search") : t("menuMgmt.empty")}
               </p>
             </div>
           )}
@@ -394,7 +420,7 @@ const MenuManagement = () => {
         {/* Pagination */}
         <div className="flex items-center justify-between pt-2">
           <div className="text-sm text-muted-foreground">
-            Page {page} of {Math.max(1, totalPages)}
+            {t("menuMgmt.page_of", { page, total: Math.max(1, totalPages) })}
           </div>
           <div className="flex gap-2">
             <Button
@@ -402,14 +428,14 @@ const MenuManagement = () => {
               disabled={page <= 1 || isFetching}
               onClick={() => setPage((p) => Math.max(1, p - 1))}
             >
-              Previous
+              {t("menuMgmt.previous")}
             </Button>
             <Button
               variant="outline"
               disabled={page >= totalPages || isFetching}
               onClick={() => setPage((p) => p + 1)}
             >
-              Next
+              {t("menuMgmt.next")}
             </Button>
           </div>
         </div>
@@ -420,7 +446,9 @@ const MenuManagement = () => {
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-2xl font-serif">
-              {selectedItem ? "Edit Menu Item" : "Add New Menu Item"}
+              {selectedItem
+                ? t("menuMgmt.dialog_edit_title")
+                : t("menuMgmt.dialog_add_title")}
             </DialogTitle>
           </DialogHeader>
           <MenuItemForm
@@ -441,19 +469,20 @@ const MenuManagement = () => {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Menu Item</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t("menuMgmt.dialog_delete_title")}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{itemToDelete?.name}"? This
-              action cannot be undone.
+              {t("menuMgmt.dialog_delete_desc", { name: itemToDelete?.name })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("menuMgmt.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Delete
+              {t("menuMgmt.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

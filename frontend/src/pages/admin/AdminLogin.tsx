@@ -13,10 +13,11 @@ import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import api from "@/lib/api";
 import { setToken } from "@/lib/auth";
+import { useTranslation } from "react-i18next";
 
 const loginSchema = z.object({
-  email: z.string().trim().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  email: z.string().trim().email("adminLogin.errors.invalid_email"),
+  password: z.string().min(6, "adminLogin.errors.password_min"),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -25,6 +26,7 @@ const AdminLogin = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
+  const { t } = useTranslation();
 
   const {
     register,
@@ -51,17 +53,20 @@ const AdminLogin = () => {
     onSuccess: ({ data }) => {
       setToken(data.token);
       toast({
-        title: "Login successful",
-        description: `Welcome back, ${data.admin.fullName || data.admin.email}`,
+        title: t("adminLogin.success.title"),
+        description: t("adminLogin.success.welcome", {
+          name: data.admin.fullName || data.admin.email,
+        }),
       });
       navigate("/admin/dashboard", { replace: true });
     },
     onError: (error: unknown) => {
       const description = isAxiosError(error)
-        ? error.response?.data?.message ?? "Invalid email or password"
-        : "Unable to login. Please try again";
+        ? error.response?.data?.message ??
+          t("adminLogin.errors.invalid_credentials")
+        : t("adminLogin.errors.unable_to_login");
       toast({
-        title: "Login failed",
+        title: t("adminLogin.errors.title"),
         description,
         variant: "destructive",
       });
@@ -80,34 +85,36 @@ const AdminLogin = () => {
             <Wine className="w-8 h-8 text-primary" />
           </div>
           <h1 className="text-3xl font-bold font-serif text-foreground mb-2">
-            Admin Panel
+            {t("adminLogin.title")}
           </h1>
-          <p className="text-muted-foreground">Grand Vista Hotel</p>
+          <p className="text-muted-foreground">{t("adminLogin.subtitle")}</p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="email">Email Address</Label>
+            <Label htmlFor="email">{t("adminLogin.email_label")}</Label>
             <Input
               id="email"
               type="email"
-              placeholder="admin@grandvista.com"
+              placeholder={t("adminLogin.email_placeholder")}
               {...register("email")}
               className={errors.email ? "border-destructive" : ""}
               disabled={loginMutation.isPending}
             />
             {errors.email && (
-              <p className="text-xs text-destructive">{errors.email.message}</p>
+              <p className="text-xs text-destructive">
+                {t(String(errors.email.message))}
+              </p>
             )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">{t("adminLogin.password_label")}</Label>
             <div className="relative">
               <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
-                placeholder="••••••••"
+                placeholder={t("adminLogin.password_placeholder")}
                 {...register("password")}
                 className={
                   errors.password ? "border-destructive pr-10" : "pr-10"
@@ -128,7 +135,7 @@ const AdminLogin = () => {
             </div>
             {errors.password && (
               <p className="text-xs text-destructive">
-                {errors.password.message}
+                {t(String(errors.password.message))}
               </p>
             )}
           </div>
@@ -138,7 +145,9 @@ const AdminLogin = () => {
             className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
             disabled={loginMutation.isPending}
           >
-            {loginMutation.isPending ? "Logging in..." : "Login"}
+            {loginMutation.isPending
+              ? t("adminLogin.logging_in")
+              : t("adminLogin.login_button")}
           </Button>
         </form>
         <div className="mt-6 text-center">
@@ -146,7 +155,7 @@ const AdminLogin = () => {
             to="/admin/forgot-password"
             className="text-sm text-muted-foreground hover:text-foreground"
           >
-            Forgot password?
+            {t("adminLogin.forgot_password")}
           </Link>
         </div>
       </Card>

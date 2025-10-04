@@ -29,8 +29,11 @@ import {
   createQRCode,
   fetchQRCodes,
   fetchQRStats,
+  fetchQRCodeById,
   updateQRCode,
 } from "@/lib/qrApi";
+import { useQRStats } from "@/hooks/useQRApi";
+import { useTranslation } from "react-i18next";
 
 type TargetType = "menu" | "table" | "custom";
 
@@ -44,6 +47,7 @@ const toAbsoluteUrl = (path: string) =>
 const QRManagement = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
   const [targetType, setTargetType] = useState<TargetType>("menu");
   const [tableId, setTableId] = useState("");
@@ -64,11 +68,7 @@ const QRManagement = () => {
     data: stats,
     isLoading: statsLoading,
     isFetching: statsFetching,
-  } = useQuery({
-    queryKey: ["qr-stats"],
-    queryFn: fetchQRStats,
-    refetchInterval: 30_000,
-  });
+  } = useQRStats();
 
   const currentCode: QRCodeRecord | null = useMemo(() => {
     if (!qrCodes?.length) return null;
@@ -85,24 +85,61 @@ const QRManagement = () => {
   }, [qrCodes, selectedCodeId]);
 
   useEffect(() => {
-    if (currentCode) {
-      setFormat(currentCode.format);
-
-      const origin = window.location.origin;
-      if (currentCode.url.startsWith(`${origin}/menu/`)) {
-        setTargetType("table");
-        setTableId(currentCode.url.replace(`${origin}/menu/`, ""));
-        setCustomUrl("");
-      } else if (currentCode.url === `${origin}/menu`) {
-        setTargetType("menu");
-        setTableId("");
-        setCustomUrl("");
-      } else {
-        setTargetType("custom");
-        setCustomUrl(currentCode.url);
-      }
+    if (!currentCode) {
+      return;
     }
-  }, [currentCode?.id]);
+
+    setFormat(currentCode.format);
+
+    const origin = window.location.origin;
+    if (currentCode.url.startsWith(`${origin}/menu/`)) {
+      setTargetType("table");
+      setTableId(currentCode.url.replace(`${origin}/menu/`, ""));
+      setCustomUrl("");
+      return;
+    }
+
+    if (currentCode.url === `${origin}/menu`) {
+      setTargetType("menu");
+      setTableId("");
+      setCustomUrl("");
+      return;
+    }
+
+    setTargetType("custom");
+    setCustomUrl(currentCode.url);
+  }, [currentCode]);
+
+  const [previewError, setPreviewError] = useState<string | null>(null);
+  const [previewChecking, setPreviewChecking] = useState(false);
+
+  // Verify that the signed URL for the current code is reachable.
+  const verifyPreview = async (signedUrl?: string) => {
+    setPreviewError(null);
+    if (!signedUrl) return;
+    const fileUrl = toAbsoluteUrl(signedUrl);
+    try {
+      setPreviewChecking(true);
+      const resp = await fetch(fileUrl, {
+        method: "GET",
+        credentials: "omit",
+        cache: "no-store",
+      });
+      if (!resp.ok) {
+        setPreviewError(`Preview failed: ${resp.status} ${resp.statusText}`);
+      } else {
+        setPreviewError(null);
+      }
+    } catch (err) {
+      setPreviewError(`Preview error: ${(err as Error).message}`);
+    } finally {
+      setPreviewChecking(false);
+    }
+  };
+
+  useEffect(() => {
+    if (currentCode?.signedUrl) verifyPreview(currentCode.signedUrl);
+  }, [currentCode?.signedUrl]);
 
   const targetUrl = useMemo(() => {
     const origin = window.location.origin;
@@ -138,8 +175,10 @@ const QRManagement = () => {
     onSuccess: (data, variables) => {
       toast({
         title:
-          variables.mode === "create" ? "QR code created" : "QR code updated",
-        description: "Share or print the updated QR code with your guests.",
+          variables.mode === "create"
+            ? t("qrMgmt.toasts.created")
+            : t("qrMgmt.toasts.updated"),
+        description: t("qrMgmt.toasts.share"),
       });
       queryClient.invalidateQueries({ queryKey: ["qr-codes"] });
       queryClient.invalidateQueries({ queryKey: ["qr-stats"] });
@@ -148,9 +187,9 @@ const QRManagement = () => {
       }
     },
     onError: (error) => {
-      const message = error.message || "Unable to process QR request";
+      const message = error.message || t("qrMgmt.toasts.unable");
       toast({
-        title: "QR action failed",
+        title: t("qrMgmt.toasts.failed"),
         description: message,
         variant: "destructive",
       });
@@ -160,9 +199,8 @@ const QRManagement = () => {
   const handleGenerate = (mode: "create" | "update") => {
     if (!isTargetValid) {
       toast({
-        title: "Missing URL",
-        description:
-          "Please provide a valid menu URL before generating a QR code.",
+        title: t("qrMgmt.toasts.missing_url"),
+        description: t("qrMgmt.toasts.provide_url"),
         variant: "destructive",
       });
       return;
@@ -170,8 +208,8 @@ const QRManagement = () => {
 
     if (mode === "update" && !currentCode) {
       toast({
-        title: "No QR selected",
-        description: "Create a QR code first, then you can update it.",
+        title: t("qrMgmt.toasts.no_qr_selected"),
+        description: t("qrMgmt.toasts.create_first"),
         variant: "destructive",
       });
       return;
@@ -205,14 +243,16 @@ const QRManagement = () => {
       link.remove();
       URL.revokeObjectURL(downloadUrl);
       toast({
-        title: "QR code downloaded",
-        description: "Check your downloads folder for the latest file.",
+        title: t("qrMgmt.toasts.downloaded"),
+        description: t("qrMgmt.toasts.download_check"),
       });
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Unable to download QR file";
+        error instanceof Error
+          ? error.message
+          : t("qrMgmt.toasts.download_unable");
       toast({
-        title: "Download failed",
+        title: t("qrMgmt.toasts.download_failed"),
         description: message,
         variant: "destructive",
       });
@@ -225,16 +265,15 @@ const QRManagement = () => {
     const printWindow = window.open(fileUrl, "_blank");
     if (!printWindow) {
       toast({
-        title: "Pop-up blocked",
-        description: "Allow pop-ups for this site to print the QR code.",
+        title: t("qrMgmt.toasts.popup_blocked"),
+        description: t("qrMgmt.toasts.allow_popups"),
         variant: "destructive",
       });
       return;
     }
     toast({
-      title: "Print window opened",
-      description:
-        "Use your browser’s print dialog to produce flyers or posters.",
+      title: t("qrMgmt.toasts.print_opened"),
+      description: t("qrMgmt.toasts.print_desc"),
     });
   };
 
@@ -263,29 +302,70 @@ const QRManagement = () => {
 
     return (
       <div className="flex items-center justify-center rounded-lg border-2 border-border bg-background p-4">
-        <img
-          src={fileUrl}
-          alt="QR code preview"
-          className="h-60 w-60 object-contain"
-        />
+        {previewError ? (
+          <div className="w-full text-center text-sm text-destructive space-y-2">
+            <p>{t("qrMgmt.preview_error", "Preview unavailable")}</p>
+            <p className="text-xs text-muted-foreground">{previewError}</p>
+            <div className="flex items-center justify-center gap-2 mt-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={async () => {
+                  if (!currentCode) return;
+                  try {
+                    setPreviewChecking(true);
+                    // fetch a fresh record with a new signedUrl
+                    const fresh = await fetchQRCodeById(currentCode.id);
+                    await verifyPreview(fresh.signedUrl);
+                    // also refresh the list in background
+                    queryClient.invalidateQueries({ queryKey: ["qr-codes"] });
+                  } catch (e) {
+                    // fall back to invalidating list if direct fetch fails
+                    queryClient.invalidateQueries({ queryKey: ["qr-codes"] });
+                  } finally {
+                    setPreviewChecking(false);
+                  }
+                }}
+                disabled={previewChecking}
+              >
+                {t("qrMgmt.retry_preview", "Retry preview")}
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => verifyPreview(currentCode.signedUrl)}
+                disabled={previewChecking}
+              >
+                {previewChecking ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  t("qrMgmt.check_preview", "Check")
+                )}
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <img
+            src={fileUrl}
+            alt="QR code preview"
+            className="h-60 w-60 object-contain"
+          />
+        )}
       </div>
     );
   };
 
   const statsData: QRStats | undefined = stats;
-  const isBusy = mutation.isLoading || codesFetching;
+  const isBusy = mutation.isPending || codesFetching;
 
   return (
     <div className="p-4 md:p-8 space-y-6 md:space-y-8 animate-fade-in">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl md:text-4xl font-bold font-serif text-foreground mb-2">
-            QR Code Management
+            {t("qrMgmt.title")}
           </h1>
-          <p className="text-muted-foreground">
-            Generate secure QR codes for your digital menu and monitor real-time
-            engagement.
-          </p>
+          <p className="text-muted-foreground">{t("qrMgmt.subtitle")}</p>
         </div>
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
           <Button
@@ -293,9 +373,9 @@ const QRManagement = () => {
             className="gap-2"
             disabled={!isTargetValid || isBusy}
           >
-            {mutation.isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+            {mutation.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
             <QrIcon className="h-4 w-4" />
-            {currentCode ? "Update QR Code" : "Create QR Code"}
+            {currentCode ? t("qrMgmt.update") : t("qrMgmt.create")}
           </Button>
           {currentCode && (
             <Button
@@ -303,10 +383,10 @@ const QRManagement = () => {
               variant="outline"
               className="gap-2"
               onClick={() => handleGenerate("create")}
-              disabled={!isTargetValid || mutation.isLoading}
+              disabled={!isTargetValid || mutation.isPending}
             >
               <RefreshCcw className="h-4 w-4" />
-              Create New QR
+              {t("qrMgmt.create_new")}
             </Button>
           )}
         </div>
@@ -316,38 +396,46 @@ const QRManagement = () => {
         <Card className="lg:col-span-2 space-y-6 p-6 md:p-8 bg-card border-border">
           <div className="space-y-4">
             <h2 className="text-2xl font-serif font-bold text-foreground">
-              QR configuration
+              {t("qrMgmt.config")}
             </h2>
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="target-type">Menu destination</Label>
+                <Label htmlFor="target-type">
+                  {t("qrMgmt.menu_destination")}
+                </Label>
                 <Select
                   value={targetType}
                   onValueChange={(value: TargetType) => setTargetType(value)}
                 >
                   <SelectTrigger id="target-type">
-                    <SelectValue placeholder="Select destination" />
+                    <SelectValue placeholder={t("qrMgmt.select_destination")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="menu">Full menu (/{"menu"})</SelectItem>
-                    <SelectItem value="table">Menu by table</SelectItem>
-                    <SelectItem value="custom">Custom URL</SelectItem>
+                    <SelectItem value="menu">
+                      {t("qrMgmt.full_menu")}
+                    </SelectItem>
+                    <SelectItem value="table">
+                      {t("qrMgmt.menu_by_table")}
+                    </SelectItem>
+                    <SelectItem value="custom">
+                      {t("qrMgmt.custom_url")}
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="format">File format</Label>
+                <Label htmlFor="format">{t("qrMgmt.file_format")}</Label>
                 <Select
                   value={format}
                   onValueChange={(value: QRFormat) => setFormat(value)}
                 >
                   <SelectTrigger id="format">
-                    <SelectValue placeholder="Select format" />
+                    <SelectValue placeholder={t("qrMgmt.select_format")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="png">PNG (high resolution)</SelectItem>
-                    <SelectItem value="svg">SVG (vector)</SelectItem>
-                    <SelectItem value="pdf">PDF poster</SelectItem>
+                    <SelectItem value="png">{t("qrMgmt.png")}</SelectItem>
+                    <SelectItem value="svg">{t("qrMgmt.svg")}</SelectItem>
+                    <SelectItem value="pdf">{t("qrMgmt.pdf")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -355,7 +443,7 @@ const QRManagement = () => {
 
             {targetType === "table" && (
               <div className="space-y-2">
-                <Label htmlFor="table-id">Table identifier</Label>
+                <Label htmlFor="table-id">{t("qrMgmt.table_identifier")}</Label>
                 <Input
                   id="table-id"
                   placeholder="e.g. table-12"
@@ -367,7 +455,9 @@ const QRManagement = () => {
 
             {targetType === "custom" && (
               <div className="space-y-2">
-                <Label htmlFor="custom-url">Custom URL</Label>
+                <Label htmlFor="custom-url">
+                  {t("qrMgmt.custom_url_label")}
+                </Label>
                 <Input
                   id="custom-url"
                   placeholder="https://example.com/menu"
@@ -378,19 +468,19 @@ const QRManagement = () => {
             )}
 
             <div className="space-y-2">
-              <Label>Final URL</Label>
+              <Label>{t("qrMgmt.final_url")}</Label>
               <Input value={targetUrl} readOnly className="font-mono text-xs" />
             </div>
 
             {qrCodes?.length ? (
               <div className="space-y-2">
-                <Label htmlFor="qr-select">Existing QR codes</Label>
+                <Label htmlFor="qr-select">{t("qrMgmt.existing_qr")}</Label>
                 <Select
                   value={currentCode?.id ?? ""}
                   onValueChange={(value) => setSelectedCodeId(value || null)}
                 >
                   <SelectTrigger id="qr-select">
-                    <SelectValue placeholder="Select QR" />
+                    <SelectValue placeholder={t("qrMgmt.select_qr")} />
                   </SelectTrigger>
                   <SelectContent>
                     {qrCodes.map((code) => (
@@ -409,11 +499,13 @@ const QRManagement = () => {
           <div className="space-y-4">
             <div className="text-center lg:text-left">
               <h2 className="text-2xl font-serif font-bold text-foreground mb-1">
-                QR preview
+                {t("qrMgmt.preview_title", "QR preview")}
               </h2>
               <p className="text-sm text-muted-foreground">
-                Signed QR assets expire automatically after ten minutes for
-                secure sharing.
+                {t(
+                  "qrMgmt.preview_desc",
+                  "Signed QR assets expire automatically after ten minutes for secure sharing."
+                )}
               </p>
             </div>
 
@@ -425,20 +517,20 @@ const QRManagement = () => {
                 variant="outline"
                 className="gap-2"
                 onClick={handleDownload}
-                disabled={!currentCode || mutation.isLoading}
+                disabled={!currentCode || mutation.isPending}
               >
                 <Download className="h-4 w-4" />
-                Download
+                {t("qrMgmt.download")}
               </Button>
               <Button
                 type="button"
                 variant="outline"
                 className="gap-2"
                 onClick={handlePrint}
-                disabled={!currentCode || mutation.isLoading}
+                disabled={!currentCode || mutation.isPending}
               >
                 <FileText className="h-4 w-4" />
-                Print / Poster
+                {t("qrMgmt.print")}
               </Button>
             </div>
           </div>
@@ -447,26 +539,44 @@ const QRManagement = () => {
         <Card className="space-y-6 p-6 bg-card border-border">
           <div className="space-y-4">
             <h3 className="text-xl font-serif font-semibold text-foreground">
-              How to deploy
+              {t("qrMgmt.how_to_deploy", "How to deploy")}
             </h3>
             <ol className="space-y-3 text-sm text-muted-foreground">
               <li className="flex gap-3">
                 <span className="font-bold text-primary">1.</span>
-                <span>Generate the QR in your preferred format.</span>
+                <span>
+                  {t(
+                    "qrMgmt.step_generate",
+                    "Generate the QR in your preferred format."
+                  )}
+                </span>
               </li>
               <li className="flex gap-3">
                 <span className="font-bold text-primary">2.</span>
-                <span>Download or print the branded poster template.</span>
+                <span>
+                  {t(
+                    "qrMgmt.step_download",
+                    "Download or print the branded poster template."
+                  )}
+                </span>
               </li>
               <li className="flex gap-3">
                 <span className="font-bold text-primary">3.</span>
                 <span>
-                  Display codes at entrances, tables, elevators, and rooms.
+                  {t(
+                    "qrMgmt.step_display",
+                    "Display codes at entrances, tables, elevators, and rooms."
+                  )}
                 </span>
               </li>
               <li className="flex gap-3">
                 <span className="font-bold text-primary">4.</span>
-                <span>Use the analytics dashboard to monitor engagement.</span>
+                <span>
+                  {t(
+                    "qrMgmt.step_analytics",
+                    "Use the analytics dashboard to monitor engagement."
+                  )}
+                </span>
               </li>
             </ol>
           </div>
@@ -476,12 +586,12 @@ const QRManagement = () => {
               <Clock className="h-5 w-5 text-primary" />
               <div>
                 <h4 className="text-sm font-semibold text-foreground">
-                  Last scan
+                  {t("qrMgmt.last_scan", "Last scan")}
                 </h4>
                 <p className="text-sm text-muted-foreground">
                   {statsData?.lastScanTime
                     ? new Date(statsData.lastScanTime).toLocaleString()
-                    : "No scans logged yet"}
+                    : t("qrMgmt.no_scans", "No scans logged yet")}
                 </p>
               </div>
             </div>
@@ -490,19 +600,32 @@ const QRManagement = () => {
           <Card className="border-primary/20 bg-primary/5 p-4">
             <h4 className="mb-2 flex items-center gap-2 font-semibold text-foreground">
               <span className="text-lg">💡</span>
-              Activation tips
+              {t("qrMgmt.activation_tips", "Activation tips")}
             </h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li>Laminate table-top QR cards to protect them from spills.</li>
               <li>
-                Refresh the QR asset every quarter to rotate campaign tracking.
+                {t(
+                  "qrMgmt.tip_laminate",
+                  "Laminate table-top QR cards to protect them from spills."
+                )}
               </li>
               <li>
-                Use the table identifier option to personalise guest journeys.
+                {t(
+                  "qrMgmt.tip_refresh",
+                  "Refresh the QR asset every quarter to rotate campaign tracking."
+                )}
               </li>
               <li>
-                Embed the signed URL in your concierge emails for contactless
-                access.
+                {t(
+                  "qrMgmt.tip_table",
+                  "Use the table identifier option to personalise guest journeys."
+                )}
+              </li>
+              <li>
+                {t(
+                  "qrMgmt.tip_embed",
+                  "Embed the signed URL in your concierge emails for contactless access."
+                )}
               </li>
             </ul>
           </Card>
@@ -512,46 +635,53 @@ const QRManagement = () => {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-serif font-semibold text-foreground">
-            Analytics overview
+            {t("qrMgmt.analytics_overview", "Analytics overview")}
           </h2>
           {(statsLoading || statsFetching) && (
             <span className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Loader2 className="h-3 w-3 animate-spin" /> Refreshing
+              <Loader2 className="h-3 w-3 animate-spin" />{" "}
+              {t("qrMgmt.refreshing", "Refreshing")}
             </span>
           )}
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatsCard
-            title="QR Codes"
+            title={t("qrMgmt.stat_qr_codes", "QR Codes")}
             value={statsData?.totalCodes ?? 0}
             icon={QrIcon}
-            description="Active digital touchpoints"
+            description={t("qrMgmt.stat_qr_desc", "Active digital touchpoints")}
           />
           <StatsCard
-            title="Total Scans"
+            title={t("qrMgmt.stat_total_scans", "Total Scans")}
             value={statsData?.totalScans ?? 0}
             icon={TrendingUp}
-            description="Lifetime engagement"
+            description={t(
+              "qrMgmt.stat_total_scans_desc",
+              "Lifetime engagement"
+            )}
           />
           <StatsCard
-            title="Scans Today"
+            title={t("qrMgmt.stat_scans_today", "Scans Today")}
             value={statsData?.scansToday ?? 0}
             icon={Clock}
-            description="Rolling 24 hours"
+            description={t("qrMgmt.stat_scans_today_desc", "Rolling 24 hours")}
           />
           <StatsCard
-            title="Unique QR codes"
+            title={t("qrMgmt.stat_unique_qr", "Unique QR codes")}
             value={statsData?.uniqueVisitors ?? 0}
             icon={Users}
-            description="Codes scanned at least once"
+            description={t(
+              "qrMgmt.stat_unique_qr_desc",
+              "Codes scanned at least once"
+            )}
           />
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <StatsCard
-            title="Scans this week"
+            title={t("qrMgmt.stat_scans_week", "Scans this week")}
             value={statsData?.scansThisWeek ?? 0}
             icon={Calendar}
-            description="Past 7 days"
+            description={t("qrMgmt.stat_scans_week_desc", "Past 7 days")}
           />
         </div>
       </div>

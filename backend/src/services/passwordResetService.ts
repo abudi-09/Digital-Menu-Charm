@@ -182,7 +182,10 @@ export const verifyEmailForReset = async (sessionId: string, token: string) => {
     };
   }
 
-  if (session.emailTokenExpiresAt.getTime() < Date.now()) {
+  if (
+    session.emailTokenExpiresAt &&
+    session.emailTokenExpiresAt.getTime() < Date.now()
+  ) {
     session.status = "expired";
     await session.save();
     throw new Error("Email verification token has expired");

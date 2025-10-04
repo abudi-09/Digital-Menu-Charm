@@ -10,11 +10,14 @@ import { Footer } from "@/components/Footer";
 import { menuItems as staticMenuItems, categories } from "@/data/menuData";
 import { MenuItem } from "@/types/menu";
 import { useMenuQuery } from "@/hooks/useMenuApi";
+import { useTranslation } from "react-i18next";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 type BackendMenuItem = Omit<MenuItem, "id"> & { _id?: string; id?: string };
 
 const Menu = () => {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -22,7 +25,11 @@ const Menu = () => {
   const [activeCategory, setActiveCategory] = useState<string>(
     searchParams.get("category") || categories[0]
   );
-  const { data: backendItems, isLoading: apiLoading, isError } = useMenuQuery();
+  const {
+    data: backendItems,
+    isLoading: apiLoading,
+    isError,
+  } = useMenuQuery({ lang: i18n.language });
 
   useEffect(() => {
     // Keep a short skeleton for visual polish while fetching
@@ -91,16 +98,20 @@ const Menu = () => {
             size="icon"
             onClick={() => navigate("/")}
             className="hover:bg-muted"
+            aria-label={t("common.back")}
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
             <h1 className="text-2xl font-bold font-serif text-foreground">
-              Our Menu
+              {t("menu.title")}
             </h1>
             <p className="text-sm text-muted-foreground">
-              Explore our culinary offerings
+              {t("menu.subtitle")}
             </p>
+          </div>
+          <div className="ml-auto">
+            <LanguageSwitcher compact />
           </div>
         </div>
       </header>
@@ -110,6 +121,7 @@ const Menu = () => {
         categories={categories}
         activeCategory={activeCategory}
         onCategoryChange={handleCategoryChange}
+        labelFor={(c) => t(`menu.categories.${c}`, { defaultValue: c })}
       />
 
       {/* Menu Items */}
@@ -139,9 +151,7 @@ const Menu = () => {
 
           {!loading && filteredItems.length === 0 && (
             <div className="text-center py-12">
-              <p className="text-muted-foreground">
-                No items available in this category.
-              </p>
+              <p className="text-muted-foreground">{t("menu.empty")}</p>
             </div>
           )}
         </div>

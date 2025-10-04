@@ -14,26 +14,43 @@ import {
   useVerifyResetSms,
 } from "@/hooks/usePasswordReset";
 import { CheckCircle2, Loader2, MessageSquare, Shield } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
-const passwordSchema = z
-  .object({
-    newPassword: z
-      .string()
-      .min(8, "Password must be at least 8 characters")
-      .regex(/[A-Z]/, "Include at least one uppercase letter")
-      .regex(/[a-z]/, "Include at least one lowercase letter")
-      .regex(/\d/, "Include at least one number")
-      .regex(/[^A-Za-z0-9]/, "Include at least one symbol"),
-    confirmPassword: z
-      .string()
-      .min(8, "Password must be at least 8 characters"),
-  })
-  .refine((val) => val.newPassword === val.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  });
+const buildSchema = (t: (k: string, def?: string) => string) =>
+  z
+    .object({
+      newPassword: z
+        .string()
+        .min(
+          8,
+          t("resetPassword.pw_req_1", "Password must be at least 8 characters")
+        )
+        .regex(
+          /[A-Z]/,
+          t("profile.pw_req_2", "Include at least one uppercase letter")
+        )
+        .regex(
+          /[a-z]/,
+          t("profile.pw_req_2", "Include at least one lowercase letter")
+        )
+        .regex(/\d/, t("profile.pw_req_2", "Include at least one number"))
+        .regex(
+          /[^A-Za-z0-9]/,
+          t("profile.pw_req_2", "Include at least one symbol")
+        ),
+      confirmPassword: z
+        .string()
+        .min(
+          8,
+          t("resetPassword.pw_req_1", "Password must be at least 8 characters")
+        ),
+    })
+    .refine((val) => val.newPassword === val.confirmPassword, {
+      message: t("resetPassword.passwords_no_match", "Passwords do not match"),
+      path: ["confirmPassword"],
+    });
 
-type PasswordFormData = z.infer<typeof passwordSchema>;
+type PasswordFormData = z.infer<ReturnType<typeof buildSchema>>;
 
 type ResetStep =
   | "verify-email"
@@ -44,6 +61,7 @@ type ResetStep =
 
 const ResetPassword = () => {
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const sessionId = searchParams.get("sessionId") ?? "";
   const token = searchParams.get("token") ?? "";
@@ -61,8 +79,11 @@ const ResetPassword = () => {
   // guard to ensure we only trigger email verification once per mount/link
   const didTriggerEmailVerify = useRef(false);
 
+  const tt = (k: string, def?: string) =>
+    def ? t(k, { defaultValue: def }) : t(k);
+
   const form = useForm<PasswordFormData>({
-    resolver: zodResolver(passwordSchema),
+    resolver: zodResolver(buildSchema(tt)),
     defaultValues: {
       newPassword: "",
       confirmPassword: "",
@@ -91,32 +112,32 @@ const ResetPassword = () => {
           if (smsRequired) {
             setStep("enter-sms");
             toast({
-              title: "Email verified",
-              description: "We've sent a verification code to your phone.",
+              title: t("adminLogin.success.title", "Email verified"),
+              description: t("resetPassword.enter_sms_desc"),
             });
           } else {
             setStep("set-password");
             toast({
-              title: "Email verified",
-              description: "You can reset your password now.",
+              title: t("adminLogin.success.title", "Email verified"),
+              description: t("resetPassword.set_password_desc"),
             });
           }
         },
         onError: (error) => {
           const description =
             (error as { response?: { data?: { message?: string } } }).response
-              ?.data?.message ?? "Email verification failed or link expired.";
+              ?.data?.message ?? t("resetPassword.link_invalid");
           setStep("error");
           setErrorMessage(description);
           toast({
-            title: "Verification failed",
+            title: t("resetPassword.verification_failed"),
             description,
             variant: "destructive",
           });
         },
       }
     );
-  }, [step, sessionId, token, verifyEmail, toast]);
+  }, [step, sessionId, token, verifyEmail, toast, t]);
 
   const handleSmsSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -128,16 +149,16 @@ const ResetPassword = () => {
         onSuccess: () => {
           setStep("set-password");
           toast({
-            title: "Phone verified",
-            description: "You can now set a new password.",
+            title: t("forgotPassword.phone_verified"),
+            description: t("forgotPassword.you_can_set_password"),
           });
         },
         onError: (error) => {
           const description =
             (error as { response?: { data?: { message?: string } } }).response
-              ?.data?.message ?? "Verification code is invalid or expired.";
+              ?.data?.message ?? t("forgotPassword.code_invalid");
           toast({
-            title: "Code error",
+            title: t("forgotPassword.code_error"),
             description,
             variant: "destructive",
           });
@@ -149,7 +170,7 @@ const ResetPassword = () => {
   const handlePasswordSubmit = (values: PasswordFormData) => {
     if (!sessionId) {
       setStep("error");
-      setErrorMessage("Invalid password reset session.");
+      setErrorMessage(t("setPassword.missing_session"));
       return;
     }
 
@@ -159,18 +180,16 @@ const ResetPassword = () => {
         onSuccess: (data) => {
           setStep("complete");
           toast({
-            title: "Password updated",
-            description:
-              data.message ?? "You can log in with your new password now.",
+            title: t("profile.toast_password_updated", "Password updated"),
+            description: data.message ?? t("resetPassword.complete_desc"),
           });
         },
         onError: (error) => {
           const description =
             (error as { response?: { data?: { message?: string } } }).response
-              ?.data?.message ??
-            "Unable to reset password. Please restart the process.";
+              ?.data?.message ?? t("setPassword.toast_failed");
           toast({
-            title: "Reset failed",
+            title: t("adminLogin.errors.title", "Reset failed"),
             description,
             variant: "destructive",
           });
@@ -186,16 +205,15 @@ const ResetPassword = () => {
           <Shield className="mx-auto h-10 w-10 text-destructive" />
           <div className="space-y-2">
             <h2 className="text-xl font-semibold text-foreground">
-              Unable to continue
+              {t("resetPassword.unable_continue")}
             </h2>
             <p className="text-sm text-muted-foreground">
-              {errorMessage ??
-                "The verification link is invalid or has expired."}
+              {errorMessage ?? t("resetPassword.link_invalid")}
             </p>
           </div>
           <div className="flex justify-center">
             <Link to="/admin/forgot-password">
-              <Button variant="outline">Start over</Button>
+              <Button variant="outline">{t("resetPassword.start_over")}</Button>
             </Link>
           </div>
         </div>
@@ -208,10 +226,10 @@ const ResetPassword = () => {
           <Loader2 className="h-10 w-10 animate-spin text-primary" />
           <div className="space-y-2">
             <h2 className="text-xl font-semibold text-foreground">
-              Verifying your email...
+              {t("resetPassword.verifying_email")}
             </h2>
             <p className="text-sm text-muted-foreground">
-              Please wait while we confirm your secure reset request.
+              {t("resetPassword.please_wait")}
             </p>
           </div>
         </div>
@@ -224,14 +242,16 @@ const ResetPassword = () => {
           <div className="space-y-2 text-center">
             <MessageSquare className="mx-auto h-10 w-10 text-primary" />
             <h2 className="text-xl font-semibold text-foreground">
-              Enter verification code
+              {t("resetPassword.enter_sms_title")}
             </h2>
             <p className="text-sm text-muted-foreground">
-              We sent a 6-digit code to your registered phone number.
+              {t("resetPassword.enter_sms_desc")}
             </p>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="smsCode">Verification Code</Label>
+            <Label htmlFor="smsCode">
+              {t("forgotPassword.verification_code")}
+            </Label>
             <Input
               id="smsCode"
               inputMode="numeric"
@@ -251,7 +271,9 @@ const ResetPassword = () => {
             className="w-full"
             disabled={verifySms.isPending || smsCode.length < 4}
           >
-            {verifySms.isPending ? "Verifying..." : "Verify code"}
+            {verifySms.isPending
+              ? t("forgotPassword.verifying")
+              : t("forgotPassword.verify_code")}
           </Button>
         </form>
       );
@@ -266,14 +288,16 @@ const ResetPassword = () => {
           <div className="space-y-2 text-center">
             <Shield className="mx-auto h-10 w-10 text-primary" />
             <h2 className="text-xl font-semibold text-foreground">
-              Set a new password
+              {t("resetPassword.set_password_title")}
             </h2>
             <p className="text-sm text-muted-foreground">
-              Choose a strong password you haven't used before.
+              {t("resetPassword.set_password_desc")}
             </p>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="newPassword">New Password</Label>
+            <Label htmlFor="newPassword">
+              {t("resetPassword.new_password")}
+            </Label>
             <Input
               id="newPassword"
               type="password"
@@ -290,7 +314,9 @@ const ResetPassword = () => {
             )}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirm Password</Label>
+            <Label htmlFor="confirmPassword">
+              {t("resetPassword.confirm_password")}
+            </Label>
             <Input
               id="confirmPassword"
               type="password"
@@ -309,17 +335,21 @@ const ResetPassword = () => {
             )}
           </div>
           <div className="rounded-lg bg-muted/50 p-4 text-xs text-muted-foreground space-y-1">
-            <p className="font-semibold">Password requirements</p>
-            <p>• Minimum 8 characters</p>
-            <p>• Include uppercase, lowercase, numbers, and symbols</p>
-            <p>• Avoid passwords used elsewhere</p>
+            <p className="font-semibold">
+              {t("resetPassword.pw_requirements")}
+            </p>
+            <p>{t("resetPassword.pw_req_1")}</p>
+            <p>{t("resetPassword.pw_req_2")}</p>
+            <p>{t("resetPassword.pw_req_3")}</p>
           </div>
           <Button
             type="submit"
             className="w-full"
             disabled={completeReset.isPending}
           >
-            {completeReset.isPending ? "Saving..." : "Save new password"}
+            {completeReset.isPending
+              ? t("resetPassword.saving")
+              : t("resetPassword.save_new_password")}
           </Button>
         </form>
       );
@@ -330,15 +360,15 @@ const ResetPassword = () => {
         <CheckCircle2 className="mx-auto h-10 w-10 text-green-600" />
         <div className="space-y-2">
           <h2 className="text-xl font-semibold text-foreground">
-            Password updated successfully
+            {t("resetPassword.complete_title")}
           </h2>
           <p className="text-sm text-muted-foreground">
-            You can now log in with your new password.
+            {t("resetPassword.complete_desc")}
           </p>
         </div>
         <div className="flex justify-center">
           <Link to="/admin/login">
-            <Button>Return to login</Button>
+            <Button>{t("resetPassword.return_login")}</Button>
           </Link>
         </div>
       </div>
@@ -351,10 +381,10 @@ const ResetPassword = () => {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-primary">
-              Secure reset
+              {t("resetPassword.secure_reset")}
             </p>
             <h1 className="text-2xl font-serif font-bold text-foreground">
-              Admin Password Reset
+              {t("resetPassword.title")}
             </h1>
           </div>
           {isBusy && <Loader2 className="h-6 w-6 animate-spin text-primary" />}

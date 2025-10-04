@@ -9,7 +9,19 @@ import {
 
 export const getQRFile = async (req: Request, res: Response) => {
   const { key } = req.params;
-  const token = req.query.token;
+  const tokenQuery = req.query.token;
+  let token: string | null = null;
+  if (typeof tokenQuery === "string" && tokenQuery.length > 0) {
+    token = tokenQuery;
+  } else {
+    const auth = req.headers["authorization"];
+    if (typeof auth === "string") {
+      const [type, value] = auth.split(" ");
+      if (type === "Bearer" && value) {
+        token = value;
+      }
+    }
+  }
 
   if (!key || typeof key !== "string") {
     return res.status(400).json({ message: "Missing file key" });

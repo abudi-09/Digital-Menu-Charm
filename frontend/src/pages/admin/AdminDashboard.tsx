@@ -11,15 +11,18 @@ import { Button } from "@/components/ui/button";
 import { StatsCard } from "@/components/admin/StatsCard";
 import { useQuery } from "@tanstack/react-query";
 import { fetchQRStats } from "@/lib/qrApi";
-import { useMenuQuery } from "@/hooks/useMenuApi";
+import { useQRStats } from "@/hooks/useQRApi";
+import { useMenuQuery, useAllMenuItems } from "@/hooks/useMenuApi";
 import React from "react";
+import { useTranslation } from "react-i18next";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  const { i18n, t } = useTranslation();
 
-  const { data: backendItems, isLoading } = useMenuQuery();
+  const { data: allItems, isLoading } = useAllMenuItems(i18n.language);
 
-  const mapped = (backendItems ?? []).map((b) => ({
+  const mapped = (allItems ?? []).map((b) => ({
     id: b._id,
     name: b.name,
     category: b.category,
@@ -49,11 +52,7 @@ const AdminDashboard = () => {
     data: qrStats,
     isLoading: qrStatsLoading,
     isFetching: qrStatsFetching,
-  } = useQuery({
-    queryKey: ["qr-stats"],
-    queryFn: fetchQRStats,
-    refetchInterval: 30_000,
-  });
+  } = useQRStats();
 
   // if backend data available, merge into stats used by the UI
   if (qrStats) {
@@ -64,14 +63,14 @@ const AdminDashboard = () => {
 
   const quickActions = [
     {
-      title: "Manage Menu",
-      description: "Add, edit, or remove menu items",
+      title: t("dashboard.manage_menu"),
+      description: t("dashboard.manage_menu_desc"),
       icon: Package,
       action: () => navigate("/admin/menu"),
     },
     {
-      title: "QR Code",
-      description: "Generate and manage QR codes",
+      title: t("dashboard.qr_code"),
+      description: t("dashboard.qr_code_desc"),
       icon: QrCode,
       action: () => navigate("/admin/qr"),
     },
@@ -82,38 +81,36 @@ const AdminDashboard = () => {
       {/* Header */}
       <div>
         <h1 className="text-3xl md:text-4xl font-bold font-serif text-foreground mb-2">
-          Dashboard
+          {t("dashboard.title")}
         </h1>
-        <p className="text-muted-foreground">
-          Overview of your hotel menu system
-        </p>
+        <p className="text-muted-foreground">{t("dashboard.subtitle")}</p>
       </div>
 
       {/* Menu Stats */}
       <div>
         <h2 className="text-xl font-semibold font-serif text-foreground mb-4">
-          Menu Statistics
+          {t("dashboard.menu_stats")}
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <StatsCard
-            title="Total Items"
+            title={t("dashboard.total_items")}
             value={stats.totalItems}
             icon={Package}
-            description="Active menu items"
+            description={t("dashboard.active_items")}
             loading={isLoading}
           />
           <StatsCard
-            title="Categories"
+            title={t("dashboard.categories")}
             value={stats.totalCategories}
             icon={Grid3x3}
-            description="Menu categories"
+            description={t("dashboard.menu_categories")}
             loading={isLoading}
           />
           <StatsCard
-            title="Out of Stock"
+            title={t("dashboard.out_of_stock")}
             value={stats.outOfStock}
             icon={AlertCircle}
-            description="Unavailable items"
+            description={t("dashboard.unavailable_items")}
             loading={isLoading}
           />
         </div>
@@ -122,28 +119,28 @@ const AdminDashboard = () => {
       {/* QR Analytics */}
       <div>
         <h2 className="text-xl font-semibold font-serif text-foreground mb-4">
-          QR Code Analytics
+          {t("dashboard.qr_stats")}
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <StatsCard
-            title="Total Scans"
+            title={t("dashboard.total_scans")}
             value={stats.totalScans}
             icon={QrCode}
-            trend={{ value: "+12% this month", positive: true }}
+            trend={{ value: t("dashboard.trend"), positive: true }}
             loading={qrStatsLoading || qrStatsFetching}
           />
           <StatsCard
-            title="Scans Today"
+            title={t("dashboard.scans_today")}
             value={stats.scansToday}
             icon={TrendingUp}
-            description="Last 24 hours"
+            description={t("dashboard.last_24h")}
             loading={qrStatsLoading || qrStatsFetching}
           />
           <StatsCard
-            title="Unique Visitors"
+            title={t("dashboard.unique_visitors")}
             value={stats.uniqueVisitors}
             icon={Users}
-            description="All time"
+            description={t("dashboard.all_time")}
             loading={qrStatsLoading || qrStatsFetching}
           />
         </div>
@@ -152,7 +149,7 @@ const AdminDashboard = () => {
       {/* Quick Actions */}
       <div>
         <h2 className="text-xl font-semibold font-serif text-foreground mb-4">
-          Quick Actions
+          {t("dashboard.quick_actions")}
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {quickActions.map((action) => (

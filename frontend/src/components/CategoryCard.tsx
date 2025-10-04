@@ -1,5 +1,6 @@
-import { ChevronRight } from 'lucide-react';
-import { Card } from '@/components/ui/card';
+import { ChevronRight } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { useTranslation } from "react-i18next";
 
 interface CategoryCardProps {
   title: string;
@@ -8,9 +9,15 @@ interface CategoryCardProps {
   onClick: () => void;
 }
 
-export const CategoryCard = ({ title, icon, count, onClick }: CategoryCardProps) => {
+export const CategoryCard = ({
+  title,
+  icon,
+  count,
+  onClick,
+}: CategoryCardProps) => {
+  const { t } = useTranslation();
   return (
-    <Card 
+    <Card
       className="group cursor-pointer overflow-hidden bg-gradient-card border-border hover:shadow-hover transition-all duration-300 animate-fade-up"
       onClick={onClick}
     >
@@ -20,8 +27,15 @@ export const CategoryCard = ({ title, icon, count, onClick }: CategoryCardProps)
             {icon}
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-foreground font-serif">{title}</h3>
-            <p className="text-sm text-muted-foreground">{count} items</p>
+            <h3 className="text-lg font-semibold text-foreground font-serif">
+              {title}
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              {t("home.items_count", {
+                count,
+                defaultValue: "{{count}} items",
+              })}
+            </p>
           </div>
         </div>
         <ChevronRight className="text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all duration-300" />

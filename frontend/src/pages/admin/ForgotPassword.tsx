@@ -24,13 +24,12 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { useTranslation } from "react-i18next";
 
-const requestSchema = z.object({
-  method: z.enum(["email", "phone"]),
-  value: z.string().trim().min(1, "A value is required"),
-});
-
-type RequestFormValues = z.infer<typeof requestSchema>;
+type RequestFormValues = {
+  method: "email" | "phone";
+  value: string;
+};
 
 const ForgotPassword = () => {
   const { toast } = useToast();
@@ -38,12 +37,21 @@ const ForgotPassword = () => {
   const requestReset = usePasswordResetRequest();
   const verifySms = useVerifyResetSms();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const [phoneSessionId, setPhoneSessionId] = useState<string | null>(null);
   const [smsCode, setSmsCode] = useState("");
 
+  const schema = z.object({
+    method: z.enum(["email", "phone"]),
+    value: z
+      .string()
+      .trim()
+      .min(1, t("forgotPassword.value_required", "A value is required")),
+  });
+
   const form = useForm<RequestFormValues>({
-    resolver: zodResolver(requestSchema),
+    resolver: zodResolver(schema),
     defaultValues: {
       method: "email",
       value: "",
@@ -58,28 +66,24 @@ const ForgotPassword = () => {
         if (values.method === "phone" && data.sessionId) {
           setPhoneSessionId(data.sessionId);
           toast({
-            title: "Verification sent",
-            description:
-              data.message ?? "We've sent an SMS with a verification code.",
+            title: t("forgotPassword.verification_sent"),
+            description: data.message ?? t("forgotPassword.sms_sent_desc"),
           });
           return;
         }
 
         toast({
-          title: "Reset link sent",
-          description:
-            data.message ??
-            "Check your email to continue the secure password reset flow.",
+          title: t("forgotPassword.reset_link_sent"),
+          description: data.message ?? t("forgotPassword.check_email"),
         });
-        form.reset({ email: "", phoneNumber: "" });
+        form.reset({ method: "email", value: "" });
       },
       onError: (error) => {
         const description =
           (error as { response?: { data?: { message?: string } } }).response
-            ?.data?.message ??
-          "Unable to start password reset. Please try again.";
+            ?.data?.message ?? t("forgotPassword.unable_start");
         toast({
-          title: "Request failed",
+          title: t("forgotPassword.request_failed"),
           description,
           variant: "destructive",
         });
@@ -96,16 +100,20 @@ const ForgotPassword = () => {
       {
         onSuccess: () => {
           toast({
-            title: "Phone verified",
-            description: "You can now set a new password.",
+            title: t("forgotPassword.phone_verified"),
+            description: t("forgotPassword.you_can_set_password"),
           });
           navigate(`/admin/set-password?sessionId=${phoneSessionId}`);
         },
         onError: (error) => {
           const description =
             (error as { response?: { data?: { message?: string } } }).response
-              ?.data?.message ?? "Verification code is invalid or expired.";
-          toast({ title: "Code error", description, variant: "destructive" });
+              ?.data?.message ?? t("forgotPassword.code_invalid");
+          toast({
+            title: t("forgotPassword.code_error"),
+            description,
+            variant: "destructive",
+          });
         },
       }
     );
@@ -120,11 +128,10 @@ const ForgotPassword = () => {
           </div>
           <div>
             <h1 className="text-2xl font-serif font-bold text-foreground">
-              Secure Password Recovery
+              {t("forgotPassword.title")}
             </h1>
             <p className="text-sm text-muted-foreground">
-              We'll guide you through a verified email and SMS process to reset
-              your password safely.
+              {t("forgotPassword.desc")}
             </p>
           </div>
         </div>
@@ -134,10 +141,11 @@ const ForgotPassword = () => {
             <div className="flex items-center gap-3">
               <Mail className="h-4 w-4 text-primary" />
               <div>
-                <p className="font-medium text-foreground">Choose method</p>
+                <p className="font-medium text-foreground">
+                  {t("forgotPassword.choose_method")}
+                </p>
                 <p className="text-sm text-muted-foreground">
-                  Select whether you'd like to receive a verification email or
-                  an SMS code to reset your password.
+                  {t("forgotPassword.choose_method_desc")}
                 </p>
               </div>
             </div>
@@ -147,12 +155,10 @@ const ForgotPassword = () => {
         <Form {...form}>
           <form onSubmit={handleRequest} className="space-y-6">
             <div className="space-y-4 rounded-lg bg-muted/50 p-4 text-sm text-muted-foreground">
-              <p className="font-medium text-foreground">Verify your details</p>
-              <p>
-                Enter the email address and phone number associated with your
-                admin account. We'll only send the reset link if both match our
-                records.
+              <p className="font-medium text-foreground">
+                {t("forgotPassword.verify_details")}
               </p>
+              <p>{t("forgotPassword.verify_details_desc")}</p>
             </div>
 
             <div className="space-y-4">
@@ -161,7 +167,9 @@ const ForgotPassword = () => {
                 name="method"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Verification method</FormLabel>
+                    <FormLabel>
+                      {t("forgotPassword.verification_method")}
+                    </FormLabel>
                     <div className="flex items-center gap-4">
                       <label className="inline-flex items-center gap-2">
                         <input
@@ -170,7 +178,9 @@ const ForgotPassword = () => {
                           checked={field.value === "email"}
                           onChange={() => field.onChange("email")}
                         />
-                        <span className="text-sm">Email</span>
+                        <span className="text-sm">
+                          {t("forgotPassword.email")}
+                        </span>
                       </label>
                       <label className="inline-flex items-center gap-2">
                         <input
@@ -179,7 +189,9 @@ const ForgotPassword = () => {
                           checked={field.value === "phone"}
                           onChange={() => field.onChange("phone")}
                         />
-                        <span className="text-sm">SMS (phone)</span>
+                        <span className="text-sm">
+                          {t("forgotPassword.sms")}
+                        </span>
                       </label>
                     </div>
                     <FormMessage />
@@ -194,8 +206,8 @@ const ForgotPassword = () => {
                   <FormItem>
                     <FormLabel>
                       {form.watch("method") === "email"
-                        ? "Email address"
-                        : "Phone number"}
+                        ? t("forgotPassword.email_address")
+                        : t("forgotPassword.phone_number")}
                     </FormLabel>
                     <FormControl>
                       <Input
@@ -222,7 +234,8 @@ const ForgotPassword = () => {
                 to="/admin/login"
                 className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
               >
-                <ArrowLeft className="h-4 w-4" /> Back to login
+                <ArrowLeft className="h-4 w-4" />{" "}
+                {t("forgotPassword.back_to_login")}
               </Link>
               <Button
                 type="submit"
@@ -233,7 +246,9 @@ const ForgotPassword = () => {
                   !form.formState.isValid
                 }
               >
-                {requestReset.isPending ? "Sending..." : "Send verification"}
+                {requestReset.isPending
+                  ? t("forgotPassword.sending")
+                  : t("forgotPassword.send_verification")}
               </Button>
             </div>
           </form>
@@ -244,14 +259,15 @@ const ForgotPassword = () => {
             <form onSubmit={handleSmsSubmit} className="space-y-4">
               <div className="text-center space-y-2">
                 <MessageSquare className="mx-auto h-8 w-8 text-primary" />
-                <p className="font-medium">Enter the code sent to your phone</p>
+                <p className="font-medium">{t("forgotPassword.enter_code")}</p>
                 <p className="text-sm text-muted-foreground">
-                  If you didn't receive the code, try again or check your
-                  number.
+                  {t("forgotPassword.enter_code_hint")}
                 </p>
               </div>
               <div>
-                <UiLabel htmlFor="otp">Verification Code</UiLabel>
+                <UiLabel htmlFor="otp">
+                  {t("forgotPassword.verification_code")}
+                </UiLabel>
                 <Input
                   id="otp"
                   inputMode="numeric"
@@ -272,13 +288,15 @@ const ForgotPassword = () => {
                   className="flex-1"
                   disabled={verifySms.isPending || smsCode.length < 4}
                 >
-                  {verifySms.isPending ? "Verifying..." : "Verify code"}
+                  {verifySms.isPending
+                    ? t("forgotPassword.verifying")
+                    : t("forgotPassword.verify_code")}
                 </Button>
                 <Button
                   variant="outline"
                   onClick={() => setPhoneSessionId(null)}
                 >
-                  Cancel
+                  {t("forgotPassword.cancel")}
                 </Button>
               </div>
             </form>

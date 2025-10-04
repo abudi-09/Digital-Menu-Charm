@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useCompletePasswordReset } from "@/hooks/usePasswordReset";
+import { useTranslation } from "react-i18next";
 
 const passwordSchema = z
   .object({
@@ -35,6 +36,7 @@ const SetPassword = () => {
   const [searchParams] = useSearchParams();
   const sessionId = searchParams.get("sessionId") ?? "";
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const completeReset = useCompletePasswordReset();
 
@@ -46,13 +48,13 @@ const SetPassword = () => {
   useEffect(() => {
     if (!sessionId) {
       toast({
-        title: "Invalid session",
-        description: "Missing password reset session. Please try again.",
+        title: t("setPassword.invalid_session"),
+        description: t("setPassword.missing_session"),
         variant: "destructive",
       });
       navigate("/admin/forgot-password");
     }
-  }, [sessionId, navigate, toast]);
+  }, [sessionId, navigate, toast, t]);
 
   const onSubmit = (values: PasswordFormData) => {
     if (!sessionId) return;
@@ -61,17 +63,20 @@ const SetPassword = () => {
       {
         onSuccess: () => {
           toast({
-            title: "Password updated",
-            description: "You can now log in.",
+            title: t("setPassword.toast_updated"),
+            description: t("setPassword.toast_login"),
           });
           navigate("/admin/login");
         },
         onError: (error) => {
           const description =
             (error as { response?: { data?: { message?: string } } }).response
-              ?.data?.message ??
-            "Unable to reset password. Please restart the process.";
-          toast({ title: "Reset failed", description, variant: "destructive" });
+              ?.data?.message ?? t("setPassword.toast_failed");
+          toast({
+            title: t("adminLogin.errors.title", "Reset failed"),
+            description,
+            variant: "destructive",
+          });
         },
       }
     );
@@ -83,17 +88,17 @@ const SetPassword = () => {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-primary">
-              Secure reset
+              {t("setPassword.secure_reset")}
             </p>
             <h1 className="text-2xl font-serif font-bold text-foreground">
-              Set new password
+              {t("setPassword.title")}
             </h1>
           </div>
         </div>
 
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="newPassword">New Password</Label>
+            <Label htmlFor="newPassword">{t("setPassword.new_password")}</Label>
             <Input
               id="newPassword"
               type="password"
@@ -107,7 +112,9 @@ const SetPassword = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirm Password</Label>
+            <Label htmlFor="confirmPassword">
+              {t("setPassword.confirm_password")}
+            </Label>
             <Input
               id="confirmPassword"
               type="password"
@@ -121,9 +128,11 @@ const SetPassword = () => {
           </div>
 
           <div className="flex justify-between">
-            <Link to="/admin/login">Cancel</Link>
+            <Link to="/admin/login">{t("setPassword.cancel")}</Link>
             <Button type="submit" disabled={completeReset.isPending}>
-              {completeReset.isPending ? "Saving..." : "Save new password"}
+              {completeReset.isPending
+                ? t("setPassword.saving")
+                : t("setPassword.save_new_password")}
             </Button>
           </div>
         </form>

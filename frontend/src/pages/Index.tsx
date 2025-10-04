@@ -5,9 +5,12 @@ import { CategoryCard } from "@/components/CategoryCard";
 import { Footer } from "@/components/Footer";
 import { useMenuQuery } from "@/hooks/useMenuApi";
 import heroImage from "@/assets/hero-image.jpg";
+import { useTranslation } from "react-i18next";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 const Index = () => {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
 
   const categoryIcons: Record<string, React.ReactNode> = {
     Starters: <Utensils className="w-6 h-6" />,
@@ -20,7 +23,7 @@ const Index = () => {
   // Always show the predefined categories. Counts come from backend items.
   // useMenuQuery may return either a plain array (legacy) or a paged response
   // { items, total, page, limit, totalPages } depending on the hook parameters.
-  const { data: backendItems } = useMenuQuery();
+  const { data: backendItems } = useMenuQuery({ lang: i18n.language });
   type BackendMenuItem = { _id: string; category?: string } & Record<
     string,
     unknown
@@ -57,6 +60,10 @@ const Index = () => {
           <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/40 to-background" />
         </div>
 
+        <div className="absolute top-4 right-4 z-20">
+          <LanguageSwitcher compact />
+        </div>
+
         <div className="relative z-10 text-center px-4 animate-fade-up">
           <div className="mb-4 inline-flex items-center justify-center w-20 h-20 rounded-full bg-primary/20 backdrop-blur-sm">
             <Wine className="w-10 h-10 text-primary" />
@@ -65,14 +72,16 @@ const Index = () => {
             Grand Vista Hotel
           </h1>
           <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Exquisite Dining Experience
+            {t("home.hero_subtitle", {
+              defaultValue: "Exquisite Dining Experience",
+            })}
           </p>
           <Button
             size="lg"
             onClick={() => navigate("/menu")}
             className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-soft hover:shadow-hover transition-all text-lg px-8 py-6"
           >
-            Explore Menu
+            {t("home.explore_menu", { defaultValue: "Explore Menu" })}
           </Button>
         </div>
       </section>
@@ -82,11 +91,13 @@ const Index = () => {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12 animate-fade-in">
             <h2 className="text-4xl font-bold font-serif text-foreground mb-4">
-              Our Menu
+              {t("menu.title")}
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Discover our carefully curated selection of dishes, crafted with
-              passion and the finest ingredients
+              {t("home.menu_intro", {
+                defaultValue:
+                  "Discover our carefully curated selection of dishes, crafted with passion and the finest ingredients",
+              })}
             </p>
           </div>
 
@@ -94,7 +105,9 @@ const Index = () => {
             {categoryCounts.map((category, index) => (
               <CategoryCard
                 key={category.name}
-                title={category.name}
+                title={t(`menu.categories.${category.name}`, {
+                  defaultValue: category.name,
+                })}
                 icon={category.icon}
                 count={category.count}
                 onClick={() => navigate(`/menu?category=${category.name}`)}
