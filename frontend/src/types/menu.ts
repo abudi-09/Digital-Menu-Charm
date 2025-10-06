@@ -13,4 +13,9 @@ export interface MenuItem {
   available: boolean;
 }
 
-export type Category = 'Starters' | 'Main Course' | 'Desserts' | 'Drinks' | 'Specials';
+export type Category =
+  | "Starters"
+  | "Main Course"
+  | "Desserts"
+  | "Drinks"
+  | "Specials";

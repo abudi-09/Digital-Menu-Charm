@@ -1,6 +1,8 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
+// Load default English synchronously to avoid rendering translation keys on first paint
+import en from "./locales/en.json";
 
 // Languages we support
 export const SUPPORTED_LANGS = ["en", "am"] as const;
@@ -22,10 +24,10 @@ async function loadLocale(lang: SupportedLang) {
   return messages.default ?? messages;
 }
 
-// Preload default EN synchronously to avoid FOUC
-// We'll hydrate additional langs on demand
-// We progressively add resource bundles at runtime
-const resources: Record<string, { translation: Record<string, unknown> }> = {};
+// Preload default EN synchronously to avoid FOUC (we keep other langs dynamic)
+const resources: Record<string, { translation: Record<string, unknown> }> = {
+  en: { translation: en as unknown as Record<string, unknown> },
+};
 
 // Attempt to read persisted language
 const persisted =
@@ -57,18 +59,18 @@ i18n
     },
   });
 
-// Ensure we always have EN loaded first for instant paint
-loadLocale("en").then((en) => {
-  i18n.addResourceBundle("en", "translation", en, true, true);
-  // If current lang is not EN, load it next
+// After init, if current language isn't English, dynamically load it (keeps initial paint crisp)
+const initLoad = async () => {
   const current = (i18n.language as SupportedLang) || "en";
   setHtmlLang(current);
   if (current !== "en" && SUPPORTED_LANGS.includes(current)) {
-    loadLocale(current).then((msgs) => {
-      i18n.addResourceBundle(current, "translation", msgs, true, true);
-      i18n.changeLanguage(current);
-    });
+    const msgs = await loadLocale(current);
+    i18n.addResourceBundle(current, "translation", msgs, true, true);
+    await i18n.changeLanguage(current);
   }
+};
+initLoad().catch(() => {
+  /* non-fatal: missing optional languages */
 });
 
 // Listen for language changes to persist and update <html lang>
