@@ -17,6 +17,7 @@ import ForgotPassword from "./pages/admin/ForgotPassword";
 import ResetPassword from "./pages/admin/ResetPassword";
 import SetPassword from "./pages/admin/SetPassword";
 import NotFound from "./pages/NotFound";
+import Scan from "./pages/Scan";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +30,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/menu" element={<Menu />} />
+          <Route path="/scan" element={<Scan />} />
           <Route path="/about" element={<About />} />
 
           {/* Admin Routes */}

@@ -229,6 +229,23 @@ export const verifyFileToken = (token: string) => {
 
 export const getFilePathForKey = (imageKey: string) => buildImagePath(imageKey);
 
+export const regenerateQRCodeFileForKey = async (imageKey: string) => {
+  // Try to find the QR record that references this imageKey and recreate the file
+  const qr = await QRCode.findOne({ imageKey }).exec();
+  if (!qr) return false;
+  await ensureStorageDir();
+  const imagePath = buildImagePath(imageKey);
+  // If file already exists, do nothing
+  try {
+    await fs.access(imagePath);
+    return true;
+  } catch (e) {
+    // file missing, generate it
+    await generateQRCodeFile(qr.url, qr.format, imagePath);
+    return true;
+  }
+};
+
 const serializeQRCode = (qr: QRCodeDocument) => ({
   id: qr.id,
   url: qr.url,

@@ -1,4 +1,4 @@
-const TOKEN_KEY = "dmc_admin_token";
+const TOKEN_KEY = "adminToken";
 
 export const getToken = () => {
   return localStorage.getItem(TOKEN_KEY);

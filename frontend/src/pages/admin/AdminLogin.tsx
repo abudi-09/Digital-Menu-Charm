@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
 import * as z from "zod";
-import { Wine, Eye, EyeOff } from "lucide-react";
+import { Wine, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -79,6 +79,15 @@ const AdminLogin = () => {
 
   return (
     <div className="min-h-screen bg-gradient-hero flex items-center justify-center p-4">
+      <div className="absolute top-6 left-6">
+        <button
+          aria-label={t("common.back")}
+          onClick={() => navigate("/")}
+          className="inline-flex items-center justify-center w-10 h-10 rounded-md bg-muted/60 hover:bg-muted text-foreground shadow-sm"
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </button>
+      </div>
       <Card className="w-full max-w-md p-8 bg-gradient-card border-border shadow-hover animate-scale-in">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/20 mb-4">

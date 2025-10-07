@@ -38,8 +38,19 @@ export const getQRFile = async (req: Request, res: Response) => {
 
   try {
     const filePath = getFilePathForKey(key);
-    await fs.access(filePath);
-    return res.sendFile(filePath);
+    try {
+      await fs.access(filePath);
+      return res.sendFile(filePath);
+    } catch (err) {
+      // file missing on disk - attempt to regenerate from DB record
+      const regenerated = await (
+        await import("../services/qrService.js")
+      ).regenerateQRCodeFileForKey(key);
+      if (regenerated) {
+        return res.sendFile(filePath);
+      }
+      return res.status(404).json({ message: "QR file not found" });
+    }
   } catch (error) {
     return res.status(404).json({ message: "QR file not found" });
   }

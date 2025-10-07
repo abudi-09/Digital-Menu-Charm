@@ -55,7 +55,11 @@ const Index = () => {
       <section className="relative h-[50vh] min-h-[400px] flex items-center justify-center overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${heroImage})` }}
+          style={
+            heroImage
+              ? { backgroundImage: `url(${heroImage as unknown as string})` }
+              : undefined
+          }
         >
           <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/40 to-background" />
         </div>

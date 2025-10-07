@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import {
   Download,
   QrCode as QrIcon,
@@ -10,7 +10,7 @@ import {
   RefreshCcw,
   FileText,
 } from "lucide-react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { StatsCard } from "@/components/admin/StatsCard";
@@ -26,14 +26,15 @@ import {
 } from "@/components/ui/select";
 import { QRCodeRecord, QRFormat, QRStats } from "@/types/admin";
 import {
-  createQRCode,
-  fetchQRCodes,
-  fetchQRStats,
-  fetchQRCodeById,
-  updateQRCode,
-} from "@/lib/qrApi";
-import { useQRStats } from "@/hooks/useQRApi";
+  useQRCodes,
+  useQRStats,
+  useCreateQRCode,
+  useUpdateQRCode,
+  useQRCode,
+} from "@/api/useQRApi";
 import { useTranslation } from "react-i18next";
+import { getToken } from "@/lib/auth";
+import { fetchQRCodeById } from "@/lib/qrApi";
 
 type TargetType = "menu" | "table" | "custom";
 
@@ -59,10 +60,7 @@ const QRManagement = () => {
     data: qrCodes,
     isLoading: codesLoading,
     isFetching: codesFetching,
-  } = useQuery({
-    queryKey: ["qr-codes"],
-    queryFn: fetchQRCodes,
-  });
+  } = useQRCodes();
 
   const {
     data: stats,
@@ -112,34 +110,175 @@ const QRManagement = () => {
 
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [previewChecking, setPreviewChecking] = useState(false);
+  const [previewBlobUrl, setPreviewBlobUrl] = useState<string | null>(null);
+  const [downloadLoading, setDownloadLoading] = useState(false);
+  const [printLoading, setPrintLoading] = useState(false);
+  const [lastVerifiedId, setLastVerifiedId] = useState<string | null>(null);
+
+  const clearPreviewBlob = useCallback(() => {
+    setPreviewBlobUrl((prev) => {
+      if (prev) {
+        URL.revokeObjectURL(prev);
+      }
+      return null;
+    });
+  }, []);
+
+  const setPreviewBlobFromBlob = useCallback((blob: Blob) => {
+    const objectUrl = URL.createObjectURL(blob);
+    setPreviewBlobUrl((prev) => {
+      if (prev) {
+        URL.revokeObjectURL(prev);
+      }
+      return objectUrl;
+    });
+  }, []);
 
   // Verify that the signed URL for the current code is reachable.
-  const verifyPreview = async (signedUrl?: string) => {
-    setPreviewError(null);
-    if (!signedUrl) return;
-    const fileUrl = toAbsoluteUrl(signedUrl);
-    try {
-      setPreviewChecking(true);
-      const resp = await fetch(fileUrl, {
-        method: "GET",
-        credentials: "omit",
-        cache: "no-store",
-      });
-      if (!resp.ok) {
-        setPreviewError(`Preview failed: ${resp.status} ${resp.statusText}`);
-      } else {
-        setPreviewError(null);
+  const verifyPreview = useCallback(
+    async (
+      input?: { signedUrl?: string | null; id?: string | null },
+      attempt = 0
+    ) => {
+      const codeId = input?.id ?? currentCode?.id ?? null;
+      let signedUrl = input?.signedUrl ?? currentCode?.signedUrl ?? null;
+      setPreviewError(null);
+
+      if (!signedUrl && codeId) {
+        try {
+          const fresh = await fetchQRCodeById(codeId);
+          signedUrl = fresh?.signedUrl ?? null;
+        } catch (e) {
+          // ignore and let the flow below report the error
+        }
       }
-    } catch (err) {
-      setPreviewError(`Preview error: ${(err as Error).message}`);
-    } finally {
-      setPreviewChecking(false);
-    }
-  };
+
+      if (!signedUrl) {
+        clearPreviewBlob();
+        return;
+      }
+
+      const fileUrl = toAbsoluteUrl(signedUrl);
+      try {
+        setPreviewChecking(true);
+        const headers: Record<string, string> = {};
+        const token = getToken();
+        if (token) headers.Authorization = `Bearer ${token}`;
+
+        const resp = await fetch(fileUrl, {
+          method: "GET",
+          credentials: "omit",
+          cache: "no-store",
+          headers,
+          // follow redirects explicitly and use CORS mode
+          redirect: "follow",
+          mode: "cors",
+        });
+
+        // If token expired/invalid or file missing, try to refresh the signedUrl once
+        // by re-fetching the QR record. This handles 401/403 (auth) and 404 (missing file)
+        if (
+          !resp.ok &&
+          (resp.status === 401 || resp.status === 403 || resp.status === 404) &&
+          codeId &&
+          attempt === 0
+        ) {
+          try {
+            const fresh = await fetchQRCodeById(codeId);
+            if (fresh?.signedUrl && fresh.signedUrl !== signedUrl) {
+              // retry with fresh signed url
+              return verifyPreview(
+                { signedUrl: fresh.signedUrl, id: fresh.id ?? codeId },
+                attempt + 1
+              );
+            }
+          } catch (e) {
+            // fall through and report the original error
+          }
+        }
+
+        if (!resp.ok) {
+          if (resp.status === 401) {
+            // Unauthorized - notify and redirect to admin login
+            toast({
+              title: t(
+                "qrMgmt.errors.unauthorized",
+                "Unauthorized — please log in again"
+              ),
+              variant: "destructive",
+            });
+            window.location.href = "/admin/login";
+            return;
+          }
+          setPreviewError(`Preview failed: ${resp.status} ${resp.statusText}`);
+          clearPreviewBlob();
+        } else {
+          setPreviewError(null);
+          try {
+            const blob = await resp.blob();
+            setPreviewBlobFromBlob(blob);
+            setLastVerifiedId(codeId);
+          } catch (e) {
+            clearPreviewBlob();
+          }
+        }
+      } catch (err) {
+        // Provide a clearer error and log full details for debugging.
+        const name = (err as any)?.name ?? "Error";
+        const message = (err as any)?.message ?? String(err);
+        console.error("Preview fetch failed", { fileUrl, name, err });
+        if (message === "Failed to fetch" || name === "TypeError") {
+          setPreviewError(
+            `Preview error: Network or CORS error when requesting ${fileUrl}. Click 'Open raw' or check the browser console/network tab.`
+          );
+          toast({
+            title: t("qrMgmt.errors.network", "Network error"),
+            description: t(
+              "qrMgmt.errors.network_desc",
+              "Network or CORS error when fetching the signed asset."
+            ),
+            variant: "destructive",
+          });
+        } else {
+          setPreviewError(`Preview error: ${name} - ${message}.`);
+        }
+        clearPreviewBlob();
+      } finally {
+        setPreviewChecking(false);
+      }
+    },
+    [currentCode, clearPreviewBlob, setPreviewBlobFromBlob, toast, t]
+  );
 
   useEffect(() => {
-    if (currentCode?.signedUrl) verifyPreview(currentCode.signedUrl);
-  }, [currentCode?.signedUrl]);
+    return () => {
+      clearPreviewBlob();
+    };
+  }, [clearPreviewBlob]);
+
+  useEffect(() => {
+    if (!selectedCodeId || selectedCodeId !== lastVerifiedId) {
+      clearPreviewBlob();
+      setPreviewError(null);
+      setPreviewChecking(false);
+    }
+  }, [selectedCodeId, lastVerifiedId, clearPreviewBlob]);
+
+  useEffect(() => {
+    if (!currentCode?.id) return;
+    if (lastVerifiedId === currentCode.id) return;
+    if (previewChecking) return;
+    verifyPreview({
+      signedUrl: currentCode.signedUrl,
+      id: currentCode.id,
+    });
+  }, [
+    currentCode?.id,
+    currentCode?.signedUrl,
+    lastVerifiedId,
+    previewChecking,
+    verifyPreview,
+  ]);
 
   const targetUrl = useMemo(() => {
     const origin = window.location.origin;
@@ -155,48 +294,18 @@ const QRManagement = () => {
 
   const isTargetValid = targetUrl.length > 0;
 
-  const mutation = useMutation<
-    QRCodeRecord,
-    Error,
-    { mode: "create" | "update"; id?: string; url: string; format: QRFormat }
-  >({
-    mutationFn: async (variables) => {
-      if (variables.mode === "create") {
-        return createQRCode({ url: variables.url, format: variables.format });
-      }
-      if (!variables.id) {
-        throw new Error("QR code id is required for update");
-      }
-      return updateQRCode(variables.id, {
-        url: variables.url,
-        format: variables.format,
-      });
-    },
-    onSuccess: (data, variables) => {
-      toast({
-        title:
-          variables.mode === "create"
-            ? t("qrMgmt.toasts.created")
-            : t("qrMgmt.toasts.updated"),
-        description: t("qrMgmt.toasts.share"),
-      });
-      queryClient.invalidateQueries({ queryKey: ["qr-codes"] });
-      queryClient.invalidateQueries({ queryKey: ["qr-stats"] });
-      if (variables.mode === "create") {
-        setSelectedCodeId(data.id);
-      }
-    },
-    onError: (error) => {
-      const message = error.message || t("qrMgmt.toasts.unable");
-      toast({
-        title: t("qrMgmt.toasts.failed"),
-        description: message,
-        variant: "destructive",
-      });
-    },
-  });
+  const createMutation = useCreateQRCode();
+  const updateMutation = useUpdateQRCode();
+  // Use a type-safe check for pending state. Different versions of React Query
+  // may expose different boolean flags; check status and fall back to any.
+  const mutationIsPending = Boolean(
+    (createMutation as any)?.isLoading ||
+      createMutation?.status === "loading" ||
+      (updateMutation as any)?.isLoading ||
+      updateMutation?.status === "loading"
+  );
 
-  const handleGenerate = (mode: "create" | "update") => {
+  const handleGenerate = async (mode: "create" | "update") => {
     if (!isTargetValid) {
       toast({
         title: t("qrMgmt.toasts.missing_url"),
@@ -215,21 +324,90 @@ const QRManagement = () => {
       return;
     }
 
-    mutation.mutate({
-      mode,
-      id: mode === "update" ? currentCode?.id : undefined,
-      url: targetUrl,
-      format,
-    });
+    if (mode === "create") {
+      try {
+        const created = await createMutation.mutateAsync({
+          url: targetUrl,
+          format,
+        });
+        if (created?.id) {
+          setSelectedCodeId(created.id);
+        }
+        if (created?.signedUrl) {
+          await verifyPreview({
+            signedUrl: created.signedUrl,
+            id: created?.id ?? null,
+          });
+        }
+        toast({
+          title: t("qrMgmt.toasts.generated", "QR code ready"),
+          description: t(
+            "qrMgmt.toasts.generated_desc",
+            "Preview the refreshed QR below."
+          ),
+        });
+      } catch (error: any) {
+        const message = error?.message ?? t("qrMgmt.toasts.generate_failed");
+        toast({
+          title: t("qrMgmt.toasts.generate_failed_title", "Unable to create"),
+          description: message,
+          variant: "destructive",
+        });
+      }
+      return;
+    }
+    if (!currentCode) return;
+    try {
+      const updated = await updateMutation.mutateAsync({
+        id: currentCode.id,
+        url: targetUrl,
+        format,
+      });
+      if (updated?.signedUrl) {
+        await verifyPreview({
+          signedUrl: updated.signedUrl,
+          id: updated?.id ?? currentCode.id,
+        });
+      }
+      toast({
+        title: t("qrMgmt.toasts.updated", "QR code updated"),
+        description: t(
+          "qrMgmt.toasts.updated_desc",
+          "Review the refreshed QR below."
+        ),
+      });
+    } catch (error: any) {
+      const message = error?.message ?? t("qrMgmt.toasts.update_failed");
+      toast({
+        title: t("qrMgmt.toasts.update_failed_title", "Unable to update"),
+        description: message,
+        variant: "destructive",
+      });
+    }
   };
 
   const handleDownload = async () => {
     if (!currentCode) return;
     try {
+      setDownloadLoading(true);
+      toast({
+        title: t("qrMgmt.toasts.starting_download", "Starting download..."),
+      });
       const fileUrl = toAbsoluteUrl(currentCode.signedUrl);
-      const response = await fetch(fileUrl);
+      const headers: Record<string, string> = {};
+      const token = getToken();
+      if (token) headers.Authorization = `Bearer ${token}`;
+
+      const response = await fetch(fileUrl, {
+        method: "GET",
+        credentials: "omit",
+        cache: "no-store",
+        headers,
+      });
       if (!response.ok) {
-        throw new Error("Failed to download QR file");
+        throw new Error(
+          `Failed to download QR file: ${response.status} ${response.statusText}`
+        );
       }
       const blob = await response.blob();
       const link = document.createElement("a");
@@ -241,7 +419,8 @@ const QRManagement = () => {
       document.body.appendChild(link);
       link.click();
       link.remove();
-      URL.revokeObjectURL(downloadUrl);
+      // release after a short delay to ensure the download has been handled by browser
+      setTimeout(() => URL.revokeObjectURL(downloadUrl), 5000);
       toast({
         title: t("qrMgmt.toasts.downloaded"),
         description: t("qrMgmt.toasts.download_check"),
@@ -256,25 +435,72 @@ const QRManagement = () => {
         description: message,
         variant: "destructive",
       });
+    } finally {
+      setDownloadLoading(false);
     }
   };
 
-  const handlePrint = () => {
+  const handlePrint = async () => {
     if (!currentCode) return;
-    const fileUrl = toAbsoluteUrl(currentCode.signedUrl);
-    const printWindow = window.open(fileUrl, "_blank");
-    if (!printWindow) {
+    try {
+      setPrintLoading(true);
       toast({
-        title: t("qrMgmt.toasts.popup_blocked"),
-        description: t("qrMgmt.toasts.allow_popups"),
+        title: t("qrMgmt.toasts.preparing_print", "Preparing print..."),
+      });
+      const fileUrl = toAbsoluteUrl(currentCode.signedUrl);
+      const headers: Record<string, string> = {};
+      const token = getToken();
+      if (token) headers.Authorization = `Bearer ${token}`;
+
+      const response = await fetch(fileUrl, {
+        method: "GET",
+        credentials: "omit",
+        cache: "no-store",
+        headers,
+      });
+      if (!response.ok) {
+        throw new Error(
+          `Failed to fetch for print: ${response.status} ${response.statusText}`
+        );
+      }
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const printWindow = window.open(url, "_blank");
+      if (!printWindow) {
+        URL.revokeObjectURL(url);
+        toast({
+          title: t("qrMgmt.toasts.popup_blocked"),
+          description: t("qrMgmt.toasts.allow_popups"),
+          variant: "destructive",
+        });
+        return;
+      }
+      // revoke when window unloads
+      const revoke = () => {
+        try {
+          URL.revokeObjectURL(url);
+        } catch (e) {
+          // ignore
+        }
+      };
+      printWindow.addEventListener("beforeunload", revoke);
+      toast({
+        title: t("qrMgmt.toasts.print_opened"),
+        description: t("qrMgmt.toasts.print_desc"),
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : t("qrMgmt.toasts.print_unable");
+      toast({
+        title: t("qrMgmt.toasts.print_failed"),
+        description: message,
         variant: "destructive",
       });
-      return;
+    } finally {
+      setPrintLoading(false);
     }
-    toast({
-      title: t("qrMgmt.toasts.print_opened"),
-      description: t("qrMgmt.toasts.print_desc"),
-    });
   };
 
   const renderPreview = () => {
@@ -291,13 +517,22 @@ const QRManagement = () => {
     const fileUrl = toAbsoluteUrl(currentCode.signedUrl);
 
     if (currentCode.format === "pdf") {
-      return (
-        <iframe
-          src={fileUrl}
-          title="QR preview"
-          className="h-64 w-full rounded-lg border border-border"
-        />
-      );
+      if (previewBlobUrl) {
+        return (
+          <iframe
+            src={previewBlobUrl}
+            title="QR preview"
+            className="h-64 w-full rounded-lg border border-border"
+          />
+        );
+      }
+      if (previewChecking) {
+        return (
+          <div className="text-sm text-muted-foreground">
+            {t("qrMgmt.checking_preview", "Checking...")}
+          </div>
+        );
+      }
     }
 
     return (
@@ -316,11 +551,30 @@ const QRManagement = () => {
                     setPreviewChecking(true);
                     // fetch a fresh record with a new signedUrl
                     const fresh = await fetchQRCodeById(currentCode.id);
-                    await verifyPreview(fresh.signedUrl);
+                    await verifyPreview({
+                      signedUrl: fresh?.signedUrl,
+                      id: fresh?.id ?? currentCode.id,
+                    });
                     // also refresh the list in background
                     queryClient.invalidateQueries({ queryKey: ["qr-codes"] });
-                  } catch (e) {
-                    // fall back to invalidating list if direct fetch fails
+                  } catch (e: any) {
+                    // detect common network/auth issues
+                    const status = e?.response?.status;
+                    if (status === 401) {
+                      toast({
+                        title: t(
+                          "qrMgmt.errors.unauthorized",
+                          "Unauthorized — please log in again"
+                        ),
+                        variant: "destructive",
+                      });
+                      return;
+                    }
+                    toast({
+                      title: t("qrMgmt.errors.network", "Network error"),
+                      description: e?.message ?? String(e),
+                      variant: "destructive",
+                    });
                     queryClient.invalidateQueries({ queryKey: ["qr-codes"] });
                   } finally {
                     setPreviewChecking(false);
@@ -333,7 +587,12 @@ const QRManagement = () => {
               <Button
                 size="sm"
                 variant="ghost"
-                onClick={() => verifyPreview(currentCode.signedUrl)}
+                onClick={() =>
+                  verifyPreview({
+                    signedUrl: currentCode.signedUrl,
+                    id: currentCode.id,
+                  })
+                }
                 disabled={previewChecking}
               >
                 {previewChecking ? (
@@ -342,21 +601,44 @@ const QRManagement = () => {
                   t("qrMgmt.check_preview", "Check")
                 )}
               </Button>
+              {/* Open the signed URL in a new tab for manual inspection (helps debugging CORS/network) */}
+              <Button
+                size="sm"
+                variant="link"
+                onClick={() => {
+                  try {
+                    const src = fileUrl;
+                    window.open(src, "_blank");
+                  } catch (e) {
+                    // ignore
+                  }
+                }}
+              >
+                Open raw
+              </Button>
             </div>
           </div>
-        ) : (
+        ) : previewBlobUrl ? (
           <img
-            src={fileUrl}
+            src={previewBlobUrl}
             alt="QR code preview"
             className="h-60 w-60 object-contain"
           />
+        ) : previewChecking ? (
+          <div className="text-sm text-muted-foreground">
+            {t("qrMgmt.checking_preview", "Checking...")}
+          </div>
+        ) : (
+          <div className="text-sm text-muted-foreground">
+            {t("qrMgmt.preview_unavailable", "Preview unavailable")}
+          </div>
         )}
       </div>
     );
   };
 
   const statsData: QRStats | undefined = stats;
-  const isBusy = mutation.isPending || codesFetching;
+  const isBusy = mutationIsPending || codesFetching;
 
   return (
     <div className="p-4 md:p-8 space-y-6 md:space-y-8 animate-fade-in">
@@ -369,11 +651,18 @@ const QRManagement = () => {
         </div>
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
           <Button
+            variant="ghost"
+            onClick={() => (window.location.href = "/admin")}
+            className="mr-2"
+          >
+            ← {t("qrMgmt.back", "Back to Dashboard")}
+          </Button>
+          <Button
             onClick={() => handleGenerate(currentCode ? "update" : "create")}
             className="gap-2"
             disabled={!isTargetValid || isBusy}
           >
-            {mutation.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+            {mutationIsPending && <Loader2 className="h-4 w-4 animate-spin" />}
             <QrIcon className="h-4 w-4" />
             {currentCode ? t("qrMgmt.update") : t("qrMgmt.create")}
           </Button>
@@ -383,7 +672,7 @@ const QRManagement = () => {
               variant="outline"
               className="gap-2"
               onClick={() => handleGenerate("create")}
-              disabled={!isTargetValid || mutation.isPending}
+              disabled={!isTargetValid || mutationIsPending}
             >
               <RefreshCcw className="h-4 w-4" />
               {t("qrMgmt.create_new")}
@@ -517,9 +806,13 @@ const QRManagement = () => {
                 variant="outline"
                 className="gap-2"
                 onClick={handleDownload}
-                disabled={!currentCode || mutation.isPending}
+                disabled={!currentCode || mutationIsPending || downloadLoading}
               >
-                <Download className="h-4 w-4" />
+                {downloadLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="h-4 w-4" />
+                )}
                 {t("qrMgmt.download")}
               </Button>
               <Button
@@ -527,9 +820,13 @@ const QRManagement = () => {
                 variant="outline"
                 className="gap-2"
                 onClick={handlePrint}
-                disabled={!currentCode || mutation.isPending}
+                disabled={!currentCode || mutationIsPending || printLoading}
               >
-                <FileText className="h-4 w-4" />
+                {printLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <FileText className="h-4 w-4" />
+                )}
                 {t("qrMgmt.print")}
               </Button>
             </div>
