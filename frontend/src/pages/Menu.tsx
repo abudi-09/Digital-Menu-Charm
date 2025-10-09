@@ -11,7 +11,7 @@ import { menuItems as staticMenuItems, categories } from "@/data/menuData";
 import { MenuItem } from "@/types/menu";
 import { useMenuQuery } from "@/hooks/useMenuApi";
 import { useTranslation } from "react-i18next";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { LanguageDropdown } from "@/components/LanguageDropdown";
 
 type BackendMenuItem = Omit<MenuItem, "id"> & { _id?: string; id?: string };
 
@@ -111,7 +111,7 @@ const Menu = () => {
             </p>
           </div>
           <div className="ml-auto">
-            <LanguageSwitcher compact />
+            <LanguageDropdown />
           </div>
         </div>
       </header>

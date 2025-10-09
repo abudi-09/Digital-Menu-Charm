@@ -11,6 +11,12 @@
     "confirm": "Confirm",
     "search": "Search"
   },
+  "nav": {
+    "home": "Home",
+    "menu": "Menu",
+    "contact": "Contact",
+    "admin": "Admin Login"
+  },
   "menu": {
     "title": "Our Menu",
     "subtitle": "Explore our culinary offerings",
@@ -19,10 +25,15 @@
       "Starters": "Starters",
       "Main Course": "Main Course",
       "Desserts": "Desserts",
-      "Beverages": "Beverages"
+      "Beverages": "Beverages",
+      "Drinks": "Drinks",
+      "Specials": "Specials"
     },
     "view_details": "View Details",
-    "add_to_order": "Add to Order"
+    "add_to_order": "Add to Order",
+    "item_description": "Description",
+    "ingredients": "Ingredients",
+    "allergens": "Allergens"
   },
   "admin": {
     "panel": "Admin Panel",
@@ -361,13 +372,71 @@
     "staff_area": "Staff Area",
     "staff_login_aria": "Staff login portal",
     "call": "Call Grand Vista Hotel",
-    "email": "Email Grand Vista Hotel"
+    "email": "Email Grand Vista Hotel",
+    "contact_us": "Contact Us",
+    "phone_label": "Phone",
+    "email_label": "Email",
+    "hours": "Hours",
+    "follow_us": "Follow Us",
+    "location_label": "Location"
   },
   "home": {
+    "hero_badge": "Boutique hospitality",
+    "hero_title": "Savor the Art of Fine Dining",
     "hero_subtitle": "Exquisite Dining Experience",
-    "explore_menu": "Explore Menu",
+    "hero_primary_cta": "View full menu",
+    "hero_secondary_cta": "Reserve a table",
+    "hero_secondary_note": "Prefer personal service? Call our concierge at {{phone}}.",
     "menu_intro": "Discover our carefully curated selection of dishes, crafted with passion and the finest ingredients",
-    "items_count": "{{count}} items",
-    "items_count_plural": "{{count}} items"
+    "items_count": "{{count}} item",
+    "items_count_plural": "{{count}} items",
+    "scroll_indicator": "Scroll to menu",
+    "no_items": "No menu items are available right now. Please check back soon.",
+    "highlights_title": "Why Guests Love Grand Vista",
+    "since": "Serving guests since {{year}}",
+    "rating": "Rated {{rating}}/5 by our guests",
+    "chef_signature": "Chef's seasonal signatures updated weekly",
+    "highlight_cards": {
+      "craft": {
+        "title": "Culinary craftsmanship",
+        "description": "Seasonal tasting menus crafted with locally sourced ingredients."
+      },
+      "service": {
+        "title": "Tailored service",
+        "description": "A dedicated concierge team personalises every dining moment."
+      },
+      "ambience": {
+        "title": "Skyline ambience",
+        "description": "Panoramic city views, live piano, and candlelit evenings."
+      }
+    },
+    "menu_section": {
+      "title": "Today's Signature Menu",
+      "description": "Start exploring the entire menu right here—no download required."
+    },
+    "menu_cta": "Open digital menu",
+    "recommendation": {
+      "title": "Chef's recommendation",
+      "description": "A four-course tasting that reimagines Ethiopian flavors with modern finesse.",
+      "cta": "Reserve tasting experience",
+      "card_title": "Grand Vista tasting flight",
+      "tag_courses": "4 courses",
+      "tag_pairing": "Wine pairing option"
+    },
+    "qr_section": {
+      "title": "Scan & Explore Instantly",
+      "description": "Each table features a dedicated QR code so guests can browse, check allergens, and order from their devices.",
+      "cta": "Learn about our QR program"
+    },
+    "testimonials_title": "What guests are saying",
+    "testimonial_placeholder": "“We're gathering the latest guest stories. Check back soon to hear from our diners.”",
+    "contact": {
+      "title": "Contact & Reservations",
+      "subtitle": "Seating is limited each evening. Connect with our concierge team to plan your visit.",
+      "call": "Call concierge",
+      "email": "Write to us",
+      "location": "Visit the hotel",
+      "address": "123 Skyline Avenue, Addis Ababa"
+    }
   }
 }

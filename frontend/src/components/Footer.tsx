@@ -1,10 +1,19 @@
 import { Link } from "react-router-dom";
 import { MapPin, Phone, Mail, Clock, LogIn } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { LanguageDropdown } from "@/components/LanguageDropdown";
+
+const PHONE_NUMBER = "+251 11 123 4567";
+const EMAIL_ADDRESS = "dining@grandvista.com";
 
 export const Footer = () => {
   const { t } = useTranslation();
+  const phoneHref = `tel:${PHONE_NUMBER.replace(/\s+/g, "")}`;
+  const emailHref = `mailto:${EMAIL_ADDRESS}`;
+  const address = t("home.contact.address", {
+    defaultValue: "123 Skyline Avenue, Addis Ababa",
+  });
+
   return (
     <footer className="bg-muted/30 border-t border-border mt-auto">
       <div className="container mx-auto px-4 py-8 md:py-12">
@@ -17,30 +26,30 @@ export const Footer = () => {
             <div className="space-y-3 text-sm text-muted-foreground">
               <div className="flex items-start gap-3">
                 <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0 text-primary" />
-                <span>123 Grand Avenue, Downtown, City 12345</span>
+                <span>{address}</span>
               </div>
               <div className="flex items-center gap-3">
                 <Phone className="w-4 h-4 flex-shrink-0 text-primary" />
                 <a
-                  href="tel:+15551234567"
+                  href={phoneHref}
                   className="hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
                   aria-label={t("footer.call", {
                     defaultValue: "Call Grand Vista Hotel",
                   })}
                 >
-                  +1 (555) 123-4567
+                  {PHONE_NUMBER}
                 </a>
               </div>
               <div className="flex items-center gap-3">
                 <Mail className="w-4 h-4 flex-shrink-0 text-primary" />
                 <a
-                  href="mailto:info@grandvistahotel.com"
+                  href={emailHref}
                   className="hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded break-all"
                   aria-label={t("footer.email", {
                     defaultValue: "Email Grand Vista Hotel",
                   })}
                 >
-                  info@grandvistahotel.com
+                  {EMAIL_ADDRESS}
                 </a>
               </div>
             </div>
@@ -127,7 +136,7 @@ export const Footer = () => {
               {t("admin.login")}
             </Link>
             <div className="pt-2">
-              <LanguageSwitcher compact />
+              <LanguageDropdown />
             </div>
           </div>
         </div>

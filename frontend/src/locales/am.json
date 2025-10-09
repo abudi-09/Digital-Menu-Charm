@@ -11,6 +11,12 @@
     "confirm": "አረጋግጥ",
     "search": "ፈልግ"
   },
+  "nav": {
+    "home": "መነሻ",
+    "menu": "ሜኑ",
+    "contact": "እኛን ያነጋግሩ",
+    "admin": "የአስተዳዳሪ መግቢያ"
+  },
   "menu": {
     "title": "የእኛ ሜኑ",
     "subtitle": "የምግብ ምርጫችንን ያስሱ",
@@ -19,10 +25,15 @@
       "Starters": "ጀማሪዎች",
       "Main Course": "ዋና ምግብ",
       "Desserts": "ንቁላል",
-      "Beverages": "መጠጦች"
+      "Beverages": "መጠጦች",
+      "Drinks": "መጠጦች",
+      "Specials": "ልዩ ምርጫዎች"
     },
     "view_details": "ዝርዝር ይመልከቱ",
-    "add_to_order": "ወደ ትእዛዝ ያክሉ"
+    "add_to_order": "ወደ ትእዛዝ ያክሉ",
+    "item_description": "መግለጫ",
+    "ingredients": "ንጥረ ነገሮች",
+    "allergens": "አለርጀኖች"
   },
   "admin": {
     "panel": "የአስተዳዳሪ ፓነል",
@@ -355,13 +366,71 @@
     "staff_area": "የሰራተኞች ክፍል",
     "staff_login_aria": "የሰራተኞች መግቢያ",
     "call": "ይደውሉ ወደ Grand Vista Hotel",
-    "email": "ኢሜይል ወደ Grand Vista Hotel"
+    "email": "ኢሜይል ወደ Grand Vista Hotel",
+    "contact_us": "እኛን ያነጋግሩ",
+    "phone_label": "ስልክ",
+    "email_label": "ኢሜይል",
+    "hours": "ሰዓታት",
+    "follow_us": "በሚከተሉት ይከተሉን",
+    "location_label": "አካባቢ"
   },
   "home": {
+    "hero_badge": "የቡቲክ እበደ አገልግሎት",
+    "hero_title": "የከፍተኛ ምግብ እንቅስቃሴን ይሳተፉ",
     "hero_subtitle": "የተሻለ የምግብ ተሞክሮ",
-    "explore_menu": "ሜኑን ይመልከቱ",
+    "hero_primary_cta": "ሙሉ ሜኑን ይመልከቱ",
+    "hero_secondary_cta": "ጠረጴዛ ይያዙ",
+    "hero_secondary_note": "የግል አገልግሎት ትመኛለህ? በ {{phone}} ኮንስየርጅ ቡድናችንን ይደውሉ.",
     "menu_intro": "በፍቅር እና በምርጥ ንጥረ ነገሮች የተዘጋጀ የዕቃዎች ምርጫችንን ያግኙ",
     "items_count": "{{count}} ዕቃ",
-    "items_count_plural": "{{count}} ዕቃዎች"
+    "items_count_plural": "{{count}} ዕቃዎች",
+    "scroll_indicator": "ወደ ሜኑ ይዝለሉ",
+    "no_items": "በአሁኑ ጊዜ የሜኑ ዕቃዎች አልተገኙም። እባኮትን እንደገና ይመልከቱ።",
+    "highlights_title": "ለምን ደንበኞች ግራንድ ቪስታን ይወዳሉ",
+    "since": "ከ{{year}} ጀምሮ ደንበኞችን እንገለጻለን",
+    "rating": "በደንበኞቻችን {{rating}}/5 ተደርጎ ተገመተ",
+    "chef_signature": "የሾላው የወቅቱ ልዩ ምግቦች በየሳምንቱ ይዘመናሉ",
+    "highlight_cards": {
+      "craft": {
+        "title": "የምግብ ችርቻሮ",
+        "description": "ከአካባቢው የተመረጡ ንጥረ ነገሮች የተዘጋጀ የወቅታዊ ምናሌ."
+      },
+      "service": {
+        "title": "በግል የተስተካከለ አገልግሎት",
+        "description": "የኮንስየርጅ ቡድናችን ሁሉንም ቀን የእርስዎን ፍላጎት እየተከታተለ ነው."
+      },
+      "ambience": {
+        "title": "የከተማ እይታ አየር",
+        "description": "የኢንሳይት ከተማ እይታ, ሕያው ፒያኖ እና በመብራት ተስተካክለው ምሽቶች."
+      }
+    },
+    "menu_section": {
+      "title": "ዛሬ የሚቀርቡ ምናሌዎች",
+      "description": "ሙሉ ሜኑን በዚህ ቦታ ጀምር ይቃኙ፤ ማውረድ አያስፈልግም."
+    },
+    "menu_cta": "ዲጂታል ሜኑን ክፈት",
+    "recommendation": {
+      "title": "የሾላው ልዩ መክብ",
+      "description": "የኢትዮጵያ ጣዕማትን በዘመናዊ ቅጥ የሚያቀርብ አራት ክፍል የሙቀት ማስታወቂያ.",
+      "cta": "የተወሰነውን ልምድ ይያዙ",
+      "card_title": "የግራንድ ቪስታ ማቅረብ ተሞክሮ",
+      "tag_courses": "4 ኮርስ",
+      "tag_pairing": "የወይን ጋር የሚዛመድ"
+    },
+    "qr_section": {
+      "title": "በፈጣን ይስክ እና ይደርሱ",
+      "description": "በእያንዳንዱ ጠረጴዛ ላይ የተመዘገበ የQR ኮድ አለ፣ እንግዶች ምን እንደሚመገቡ በመረጃ ማየት ይችላሉ።",
+      "cta": "የQR ፕሮግራማችንን ይውቱ"
+    },
+    "testimonials_title": "የእንግዶቻችን ትስስር",
+    "testimonial_placeholder": "“የእንግዶቻችንን ተሞክሮ እንሰብስባለን። በቅርብ ጊዜ ይመለሱ እና ይኩራሉ.”",
+    "contact": {
+      "title": "እናንተን እና ቦታውን ያገናኙ",
+      "subtitle": "በየምሽቱ መቀመጫ ይቀነሳል። እባኮትን ምናሌ ለመግባት ኮንስየርጅ ቡድናችንን ያነጋግሩ.",
+      "call": "ኮንስየርጅ ይደውሉ",
+      "email": "ወደ እኛ ይፃፉ",
+      "location": "ሆቴሉን ይጎብኙ",
+      "address": "123 ስካይላይን አቨንው, አዲስ አበባ"
+    }
   }
 }

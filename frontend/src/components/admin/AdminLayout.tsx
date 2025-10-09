@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { clearToken } from "@/lib/auth";
 import { useTranslation } from "react-i18next";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { LanguageDropdown } from "@/components/LanguageDropdown";
 
 const navItems = [
   {
@@ -85,7 +85,7 @@ export const AdminLayout = () => {
             </h2>
             <p className="text-xs text-muted-foreground">Grand Vista Hotel</p>
           </div>
-          <LanguageSwitcher compact className="hidden lg:inline-flex" />
+          <LanguageDropdown className="hidden lg:inline-flex" />
           <Button
             variant="ghost"
             size="icon"
@@ -106,7 +106,7 @@ export const AdminLayout = () => {
         {/* Logout */}
         <div className="p-4 border-t border-border">
           <div className="mb-3 lg:hidden">
-            <LanguageSwitcher compact />
+            <LanguageDropdown />
           </div>
           <Button
             variant="outline"
@@ -132,7 +132,7 @@ export const AdminLayout = () => {
           </Button>
           <h1 className="text-lg font-bold font-serif">{t("admin.panel")}</h1>
           <div className="ml-auto">
-            <LanguageSwitcher compact />
+            <LanguageDropdown />
           </div>
         </header>
 

@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Generated QR assets
+backend/storage/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

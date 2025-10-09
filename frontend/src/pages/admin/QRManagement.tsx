@@ -506,7 +506,7 @@ const QRManagement = () => {
   const renderPreview = () => {
     if (!currentCode) {
       return (
-        <div className="flex h-64 items-center justify-center rounded-lg border-2 border-dashed border-border">
+        <div className="flex h-64 items-center justify-center rounded-lg border-2 border-dashed border-border px-6 text-center">
           <p className="text-sm text-muted-foreground">
             Generate a QR code to preview it here.
           </p>
@@ -536,12 +536,12 @@ const QRManagement = () => {
     }
 
     return (
-      <div className="flex items-center justify-center rounded-lg border-2 border-border bg-background p-4">
+      <div className="flex flex-col items-center justify-center gap-4 rounded-lg border-2 border-border bg-background p-4 text-center sm:flex-row sm:gap-6 sm:text-left">
         {previewError ? (
-          <div className="w-full text-center text-sm text-destructive space-y-2">
+          <div className="w-full space-y-2 text-sm text-destructive">
             <p>{t("qrMgmt.preview_error", "Preview unavailable")}</p>
             <p className="text-xs text-muted-foreground">{previewError}</p>
-            <div className="flex items-center justify-center gap-2 mt-2">
+            <div className="mt-2 flex flex-wrap items-center justify-center gap-2">
               <Button
                 size="sm"
                 variant="outline"
@@ -622,7 +622,7 @@ const QRManagement = () => {
           <img
             src={previewBlobUrl}
             alt="QR code preview"
-            className="h-60 w-60 object-contain"
+            className="mx-auto h-48 w-48 object-contain sm:h-60 sm:w-60"
           />
         ) : previewChecking ? (
           <div className="text-sm text-muted-foreground">
@@ -641,10 +641,10 @@ const QRManagement = () => {
   const isBusy = mutationIsPending || codesFetching;
 
   return (
-    <div className="p-4 md:p-8 space-y-6 md:space-y-8 animate-fade-in">
+    <div className="space-y-6 p-4 md:space-y-8 md:p-8 animate-fade-in">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl md:text-4xl font-bold font-serif text-foreground mb-2">
+          <h1 className="mb-2 text-3xl font-serif font-bold text-foreground md:text-4xl">
             {t("qrMgmt.title")}
           </h1>
           <p className="text-muted-foreground">{t("qrMgmt.subtitle")}</p>
@@ -653,13 +653,13 @@ const QRManagement = () => {
           <Button
             variant="ghost"
             onClick={() => (window.location.href = "/admin")}
-            className="mr-2"
+            className="w-full sm:mr-2 sm:w-auto"
           >
             ← {t("qrMgmt.back", "Back to Dashboard")}
           </Button>
           <Button
             onClick={() => handleGenerate(currentCode ? "update" : "create")}
-            className="gap-2"
+            className="w-full gap-2 sm:w-auto"
             disabled={!isTargetValid || isBusy}
           >
             {mutationIsPending && <Loader2 className="h-4 w-4 animate-spin" />}
@@ -670,7 +670,7 @@ const QRManagement = () => {
             <Button
               type="button"
               variant="outline"
-              className="gap-2"
+              className="w-full gap-2 sm:w-auto"
               onClick={() => handleGenerate("create")}
               disabled={!isTargetValid || mutationIsPending}
             >
@@ -681,8 +681,8 @@ const QRManagement = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-2 space-y-6 p-6 md:p-8 bg-card border-border">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
+        <Card className="space-y-6 border border-border bg-card p-6 shadow-sm md:col-span-7 md:p-8 lg:col-span-8">
           <div className="space-y-4">
             <h2 className="text-2xl font-serif font-bold text-foreground">
               {t("qrMgmt.config")}
@@ -804,7 +804,7 @@ const QRManagement = () => {
               <Button
                 type="button"
                 variant="outline"
-                className="gap-2"
+                className="w-full gap-2 sm:w-auto"
                 onClick={handleDownload}
                 disabled={!currentCode || mutationIsPending || downloadLoading}
               >
@@ -818,7 +818,7 @@ const QRManagement = () => {
               <Button
                 type="button"
                 variant="outline"
-                className="gap-2"
+                className="w-full gap-2 sm:w-auto"
                 onClick={handlePrint}
                 disabled={!currentCode || mutationIsPending || printLoading}
               >
@@ -833,7 +833,7 @@ const QRManagement = () => {
           </div>
         </Card>
 
-        <Card className="space-y-6 p-6 bg-card border-border">
+        <Card className="space-y-6 border border-border bg-card p-6 shadow-sm md:col-span-5 lg:col-span-4">
           <div className="space-y-4">
             <h3 className="text-xl font-serif font-semibold text-foreground">
               {t("qrMgmt.how_to_deploy", "How to deploy")}
@@ -930,7 +930,7 @@ const QRManagement = () => {
       </div>
 
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="text-xl font-serif font-semibold text-foreground">
             {t("qrMgmt.analytics_overview", "Analytics overview")}
           </h2>
