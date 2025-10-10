@@ -19,6 +19,7 @@ import {
   formatCategoryLabel,
   mergeCategoryOrder,
 } from "@/lib/categoryLabels";
+import { Footer } from "@/components/Footer";
 
 const ALL_CATEGORY = "__all";
 
@@ -316,23 +317,23 @@ const MenuPage = () => {
         className="[--menu-tabs-offset:5.25rem]"
       />
 
-      <main className="container mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 py-10">
-        <section className="space-y-3 text-center">
-          <motion.h2
+      <main className="container mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-8">
+        <section className="space-y-4 text-center">
+          <motion.h1
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, ease: "easeOut" }}
-            className="text-4xl font-serif font-semibold text-foreground sm:text-5xl"
+            className="text-3xl font-serif font-semibold text-foreground sm:text-4xl lg:text-5xl"
           >
             {t("menu.hero_title", {
               defaultValue: "Discover our signature plates",
             })}
-          </motion.h2>
+          </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, ease: "easeOut", delay: 0.1 }}
-            className="mx-auto max-w-3xl text-base text-muted-foreground sm:text-lg"
+            className="mx-auto max-w-2xl text-base text-muted-foreground sm:text-lg"
           >
             {t("menu.hero_subtitle", {
               defaultValue:
@@ -384,7 +385,7 @@ const MenuPage = () => {
             <motion.div
               key={`${activeCategory}-${searchTerm}`}
               layout
-              className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3"
+              className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -16 }}
@@ -418,7 +419,7 @@ const MenuPage = () => {
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 80, opacity: 0 }}
             transition={{ type: "spring", stiffness: 260, damping: 24 }}
-            className="sticky bottom-6 z-40 mx-auto flex w-full max-w-xl items-center justify-between gap-4 rounded-full border border-border/70 bg-background/95 px-6 py-4 shadow-2xl shadow-primary/10 backdrop-blur"
+            className="sticky bottom-6 z-40 mx-auto flex w-full max-w-md items-center justify-between gap-4 rounded-full border border-border/70 bg-background/95 px-6 py-4 shadow-2xl shadow-primary/10 backdrop-blur"
           >
             <div className="flex flex-col text-sm text-muted-foreground">
               <span className="font-semibold text-foreground">
@@ -441,6 +442,8 @@ const MenuPage = () => {
           </motion.aside>
         ) : null}
       </AnimatePresence>
+
+      <Footer />
     </div>
   );
 };
