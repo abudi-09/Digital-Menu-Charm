@@ -11,6 +11,14 @@ export interface MenuItem {
   prepTime: string;
   portionSize: string;
   available: boolean;
+  spiceLevel?: "Mild" | "Medium" | "Hot" | string;
+  badges?: string[];
+  tags?: string[];
+  calories?: number;
+  currency?: string;
+  isChefSpecial?: boolean;
+  isNew?: boolean;
+  isPopular?: boolean;
 }
 
 export type Category =

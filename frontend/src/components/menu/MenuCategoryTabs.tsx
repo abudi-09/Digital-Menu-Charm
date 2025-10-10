@@ -7,6 +7,9 @@ interface MenuCategoryTabsProps {
   activeCategory: string;
   onCategoryChange: (category: string) => void;
   labelFor: (category: string) => string;
+  sticky?: boolean;
+  className?: string;
+  innerClassName?: string;
 }
 
 export const MenuCategoryTabs = ({
@@ -14,11 +17,25 @@ export const MenuCategoryTabs = ({
   activeCategory,
   onCategoryChange,
   labelFor,
+  sticky = true,
+  className,
+  innerClassName,
 }: MenuCategoryTabsProps) => {
   return (
-    <div className="border-b border-border/70 bg-background/95 backdrop-blur-sm">
+    <div
+      className={cn(
+        "border-b border-border/70 bg-background/95 backdrop-blur-sm",
+        sticky && "sticky top-[var(--menu-tabs-offset,4rem)] z-30",
+        className
+      )}
+    >
       <ScrollArea className="w-full whitespace-nowrap">
-        <div className="container mx-auto flex items-center gap-2 px-4 py-3">
+        <div
+          className={cn(
+            "container mx-auto flex items-center gap-2 px-4 py-3",
+            innerClassName
+          )}
+        >
           {categories.map((category) => {
             const isActive = category === activeCategory;
             return (

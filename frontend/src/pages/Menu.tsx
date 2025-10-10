@@ -65,24 +65,52 @@ const Menu = () => {
     setTimeout(() => setSelectedItem(null), 300);
   };
 
-  // Use backend items only. If backend is unreachable or returns nothing,
-  // do not fall back to bundled static data — show empty list instead.
-  const sourceItems = backendItems
-    ? (backendItems.map((b: BackendMenuItem) => ({
-        id: b._id || b.id || crypto.randomUUID(),
-        name: b.name,
-        category: b.category,
-        price: b.price,
-        description: b.description,
-        fullDescription: b.fullDescription || "",
-        image: b.image || "",
-        ingredients: b.ingredients || [],
-        allergens: b.allergens || [],
-        prepTime: b.prepTime || "",
-        portionSize: b.portionSize || "",
-        available: b.available,
-      })) as MenuItem[])
-    : [];
+  // Normalize backend response: backend may return either an array of items
+  // or a paged object { items: MenuItem[], total, page, ... }.
+  // Map safely to the UI MenuItem shape and warn if the shape is unexpected.
+  const rawBackend: unknown = backendItems;
+  let backendArray: BackendMenuItem[] = [];
+
+  if (Array.isArray(rawBackend)) {
+    backendArray = rawBackend as BackendMenuItem[];
+  } else if (rawBackend && typeof rawBackend === "object") {
+    const asRecord = rawBackend as Record<string, unknown>;
+    if (Array.isArray(asRecord.items)) {
+      backendArray = asRecord.items as BackendMenuItem[];
+    } else {
+      // Unexpected shape — log for debugging and fall back to empty list
+      if (Object.keys(asRecord).length > 0) {
+        console.warn(
+          "useMenuQuery returned unexpected shape for backendItems:",
+          asRecord
+        );
+      }
+      backendArray = [];
+    }
+  } else {
+    backendArray = [];
+  }
+
+  const sourceItems = backendArray.map((b: BackendMenuItem) => ({
+    id:
+      b._id ||
+      b.id ||
+      (typeof crypto !== "undefined" &&
+      typeof (crypto as unknown as Crypto)?.randomUUID === "function"
+        ? (crypto as unknown as Crypto).randomUUID()
+        : Math.random().toString(36).slice(2)),
+    name: b.name,
+    category: b.category,
+    price: b.price,
+    description: b.description,
+    fullDescription: b.fullDescription || "",
+    image: b.image || "",
+    ingredients: b.ingredients || [],
+    allergens: b.allergens || [],
+    prepTime: b.prepTime || "",
+    portionSize: b.portionSize || "",
+    available: b.available,
+  })) as MenuItem[];
 
   const filteredItems = sourceItems.filter(
     (item) => item.category === activeCategory

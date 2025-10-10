@@ -46,6 +46,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { useTranslation } from "react-i18next";
+import { DEFAULT_CATEGORY_ORDER, mergeCategoryOrder } from "@/lib/categoryLabels";
 
 const MenuManagement = () => {
   // Pagination & filtering state
@@ -287,7 +288,7 @@ const MenuManagement = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{t("menuMgmt.filters_all")}</SelectItem>
-              {(categories ?? []).map((c) => {
+              {mergeCategoryOrder(categories || [], DEFAULT_CATEGORY_ORDER).map((c) => {
                 const label = t(`menuMgmt.categories_values.${c}`, {
                   defaultValue: c,
                 });

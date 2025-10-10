@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import { MapPin, Phone, Mail, Clock, LogIn } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { LanguageDropdown } from "@/components/LanguageDropdown";
 
 const PHONE_NUMBER = "+251 11 123 4567";
 const EMAIL_ADDRESS = "dining@grandvista.com";
@@ -135,9 +134,7 @@ export const Footer = () => {
               <LogIn className="w-4 h-4" />
               {t("admin.login")}
             </Link>
-            <div className="pt-2">
-              <LanguageDropdown />
-            </div>
+            {/* Language switcher removed per request */}
           </div>
         </div>
 

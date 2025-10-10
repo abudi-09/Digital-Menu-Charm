@@ -31,10 +31,9 @@ const EMAIL_ADDRESS = "dining@grandvista.com";
 const CATEGORY_ORDER = [
   "Starters",
   "Main Course",
-  "Specials",
   "Desserts",
   "Drinks",
-  "Beverages",
+  "Specials",
 ];
 const ALL_CATEGORIES = "__all";
 
@@ -101,12 +100,10 @@ const Index = () => {
   }, [menuItems]);
 
   const sortedCategories = useMemo(() => {
-    return Object.keys(groupedMenu).sort((a, b) => {
+    const availableCategories = Object.keys(groupedMenu);
+    return CATEGORY_ORDER.filter(cat => availableCategories.includes(cat) || true).sort((a, b) => {
       const aIndex = CATEGORY_ORDER.indexOf(a);
       const bIndex = CATEGORY_ORDER.indexOf(b);
-      if (aIndex === -1 && bIndex === -1) return a.localeCompare(b);
-      if (aIndex === -1) return 1;
-      if (bIndex === -1) return -1;
       return aIndex - bIndex;
     });
   }, [groupedMenu]);
@@ -431,30 +428,7 @@ const Index = () => {
           </div>
         </section>
 
-        <section className="py-16">
-          <div className="container mx-auto px-6">
-            <Card className="flex flex-col gap-6 overflow-hidden border-border/60 bg-muted/40 p-8 shadow-sm md:flex-row md:items-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
-                <QrCode className="h-8 w-8" aria-hidden="true" />
-              </div>
-              <div className="flex-1 space-y-2">
-                <h2 className="text-2xl font-serif font-semibold text-foreground">
-                  Scan & Explore Instantly
-                </h2>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  Each table features a dedicated QR code so guests can browse,
-                  check allergens, and order from their devices.
-                </p>
-              </div>
-              <Button asChild variant="outline" className="rounded-full">
-                <Link to="/admin/login" className="gap-2">
-                  Learn about our QR program
-                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                </Link>
-              </Button>
-            </Card>
-          </div>
-        </section>
+        {/* Scan & Explore section removed per request */}
 
         <section className="bg-muted/20 py-16">
           <div className="container mx-auto px-6">

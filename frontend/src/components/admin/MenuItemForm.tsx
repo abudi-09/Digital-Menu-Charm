@@ -19,6 +19,7 @@ import { MenuItem } from "@/types/menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTranslation } from "react-i18next";
 import { useCategoriesQuery } from "@/hooks/useMenuApi";
+import { DEFAULT_CATEGORY_ORDER, mergeCategoryOrder } from "@/lib/categoryLabels";
 
 const menuItemSchema = z.object({
   // Nested bilingual fields (independent values)
@@ -344,14 +345,9 @@ export const MenuItemForm = ({
               <SelectValue placeholder={t("menuMgmt.labels.select_category")} />
             </SelectTrigger>
             <SelectContent>
-              {(
-                categories ?? [
-                  "Starters",
-                  "Main Course",
-                  "Desserts",
-                  "Drinks",
-                  "Specials",
-                ]
+              {mergeCategoryOrder(
+                categories || [],
+                DEFAULT_CATEGORY_ORDER
               ).map((c) => {
                 const label = t(`menuMgmt.categories_values.${c}`, {
                   defaultValue: c,

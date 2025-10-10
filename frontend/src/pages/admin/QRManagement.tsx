@@ -681,8 +681,8 @@ const QRManagement = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
-        <Card className="space-y-6 border border-border bg-card p-6 shadow-sm md:col-span-7 md:p-8 lg:col-span-8">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+        <Card className="space-y-6 bg-card p-6 shadow-sm md:p-8">
           <div className="space-y-4">
             <h2 className="text-2xl font-serif font-bold text-foreground">
               {t("qrMgmt.config")}
@@ -833,7 +833,7 @@ const QRManagement = () => {
           </div>
         </Card>
 
-        <Card className="space-y-6 border border-border bg-card p-6 shadow-sm md:col-span-5 lg:col-span-4">
+        <Card className="space-y-6 bg-card p-6 shadow-sm">
           <div className="space-y-4">
             <h3 className="text-xl font-serif font-semibold text-foreground">
               {t("qrMgmt.how_to_deploy", "How to deploy")}
