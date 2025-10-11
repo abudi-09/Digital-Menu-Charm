@@ -12,8 +12,8 @@ interface MenuItemCardProps {
 export const MenuItemCard = ({ item, onViewDetails }: MenuItemCardProps) => {
   const { t } = useTranslation();
   return (
-    <Card className="group overflow-hidden bg-gradient-card border-border hover:shadow-hover transition-all duration-300 animate-fade-in">
-      <div className="aspect-video w-full overflow-hidden">
+    <Card className="group flex h-full flex-col overflow-hidden border-border bg-gradient-card transition-all duration-300 hover:shadow-hover animate-fade-in">
+      <div className="aspect-[4/3] w-full overflow-hidden sm:aspect-video">
         <img
           src={item.image}
           alt={item.name}
@@ -21,21 +21,21 @@ export const MenuItemCard = ({ item, onViewDetails }: MenuItemCardProps) => {
           loading="lazy"
         />
       </div>
-      <div className="p-4 space-y-3">
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="text-lg font-semibold text-foreground font-serif line-clamp-1">
+      <div className="flex flex-1 flex-col gap-3 p-4">
+        <div className="flex flex-wrap items-start gap-2">
+          <h3 className="flex-1 text-base font-serif font-semibold text-foreground sm:text-lg">
             {item.name}
           </h3>
-          <span className="text-lg font-bold text-primary whitespace-nowrap">
+          <span className="text-base font-bold text-primary sm:text-lg">
             ${item.price.toFixed(2)}
           </span>
         </div>
 
-        <p className="text-sm text-muted-foreground line-clamp-2">
+        <p className="text-sm leading-relaxed text-muted-foreground line-clamp-3">
           {item.description}
         </p>
 
-        <div className="flex items-center justify-between pt-2">
+        <div className="mt-auto flex flex-col gap-3 pt-2 sm:flex-row sm:items-center sm:justify-between">
           <Badge
             variant={item.available ? "default" : "secondary"}
             className={
@@ -53,7 +53,7 @@ export const MenuItemCard = ({ item, onViewDetails }: MenuItemCardProps) => {
             variant="ghost"
             size="sm"
             onClick={() => onViewDetails(item)}
-            className="text-primary hover:text-primary-foreground hover:bg-primary transition-all"
+            className="w-full text-primary transition-all hover:bg-primary hover:text-primary-foreground sm:w-auto"
             disabled={!item.available}
           >
             {t("menu.view_details")}

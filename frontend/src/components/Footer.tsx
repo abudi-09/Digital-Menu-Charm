@@ -28,7 +28,7 @@ export const Footer = () => {
   return (
     <footer className="mt-auto bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950/95 text-slate-100">
       <div className="border-y border-white/10">
-        <div className="container mx-auto grid gap-12 px-6 py-14 lg:grid-cols-[1.2fr,1fr,1fr]">
+        <div className="container mx-auto grid gap-12 px-6 py-14 md:grid-cols-2 md:items-start lg:grid-cols-[1.2fr,1fr,1fr]">
           <div className="space-y-6">
             <div>
               <p className="text-xs uppercase tracking-[0.5em] text-purple-300">

@@ -162,6 +162,7 @@ const Menu = () => {
             ? t("menuMgmt.filters_all")
             : t(`menu.categories.${c}`, { defaultValue: c })
         }
+        sticky={false}
       />
 
       {/* Menu Items */}
@@ -179,7 +180,7 @@ const Menu = () => {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
               >
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                   {[1, 2, 3, 4, 5, 6].map((i) => (
                     <SkeletonCard key={i} />
                   ))}
@@ -193,7 +194,7 @@ const Menu = () => {
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.28 }}
               >
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                   {filteredItems.map((item) => (
                     <MenuItemCard
                       key={item.id}
