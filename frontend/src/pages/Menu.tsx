@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { MenuItemCard } from "@/components/MenuItemCard";
 import { ItemDetailsModal } from "@/components/ItemDetailsModal";
-import { CategoryTabs } from "@/components/CategoryTabs";
+import { MenuCategoryTabs } from "@/components/menu/MenuCategoryTabs";
 import { SkeletonCard } from "@/components/SkeletonCard";
 import { Footer } from "@/components/Footer";
 import { menuItems as staticMenuItems, categories } from "@/data/menuData";
+import { DEFAULT_CATEGORY_ORDER } from "@/lib/categoryLabels";
 import { MenuItem } from "@/types/menu";
 import { useMenuQuery } from "@/hooks/useMenuApi";
 import { useTranslation } from "react-i18next";
@@ -23,7 +25,7 @@ const Menu = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState<string>(
-    searchParams.get("category") || categories[0]
+    searchParams.get("category") || "__all"
   );
   const {
     data: backendItems,
@@ -39,7 +41,7 @@ const Menu = () => {
 
   useEffect(() => {
     const category = searchParams.get("category");
-    if (category && categories.includes(category)) {
+    if (category) {
       setActiveCategory(category);
       // Smooth scroll to category section
       const element = document.getElementById(category);
@@ -51,7 +53,11 @@ const Menu = () => {
 
   const handleCategoryChange = (category: string) => {
     setActiveCategory(category);
-    setSearchParams({ category });
+    if (category === "__all") {
+      setSearchParams({});
+    } else {
+      setSearchParams({ category });
+    }
   };
 
   const handleViewDetails = (item: MenuItem) => {
@@ -112,9 +118,11 @@ const Menu = () => {
     available: b.available,
   })) as MenuItem[];
 
-  const filteredItems = sourceItems.filter(
-    (item) => item.category === activeCategory
+  const filteredItems = sourceItems.filter((item) =>
+    activeCategory === "__all" ? true : item.category === activeCategory
   );
+
+  const tabList = ["__all", ...DEFAULT_CATEGORY_ORDER];
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -145,37 +153,58 @@ const Menu = () => {
       </header>
 
       {/* Category Tabs */}
-      <CategoryTabs
-        categories={categories}
+      <MenuCategoryTabs
+        categories={tabList}
         activeCategory={activeCategory}
         onCategoryChange={handleCategoryChange}
-        labelFor={(c) => t(`menu.categories.${c}`, { defaultValue: c })}
+        labelFor={(c) =>
+          c === "__all"
+            ? t("menuMgmt.filters_all")
+            : t(`menu.categories.${c}`, { defaultValue: c })
+        }
       />
 
       {/* Menu Items */}
       <main className="container mx-auto px-4 py-8 flex-1">
         <div id={activeCategory} className="space-y-4">
           <h2 className="text-3xl font-bold font-serif text-foreground mb-6">
-            {activeCategory}
+            {activeCategory === "__all" ? t("menu.title") : activeCategory}
           </h2>
 
-          {loading || apiLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[1, 2, 3, 4, 5, 6].map((i) => (
-                <SkeletonCard key={i} />
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredItems.map((item) => (
-                <MenuItemCard
-                  key={item.id}
-                  item={item}
-                  onViewDetails={handleViewDetails}
-                />
-              ))}
-            </div>
-          )}
+          <AnimatePresence mode="wait">
+            {loading || apiLoading ? (
+              <motion.div
+                key={`loading-${activeCategory}`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {[1, 2, 3, 4, 5, 6].map((i) => (
+                    <SkeletonCard key={i} />
+                  ))}
+                </div>
+              </motion.div>
+            ) : (
+              <motion.div
+                key={`items-${activeCategory}`}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.28 }}
+              >
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredItems.map((item) => (
+                    <MenuItemCard
+                      key={item.id}
+                      item={item}
+                      onViewDetails={handleViewDetails}
+                    />
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {!loading && filteredItems.length === 0 && (
             <div className="text-center py-12">

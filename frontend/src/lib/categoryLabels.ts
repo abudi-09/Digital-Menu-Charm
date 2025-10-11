@@ -1,26 +1,25 @@
 const EMOJI_MAP: Record<string, string> = {
-  starters: "🥗",
-  appetizers: "🥗",
-  "main course": "🍽️",
-  mains: "🍽️",
-  "main dishes": "🍽️",
-  desserts: "🍰",
-  sweets: "🍨",
-  drinks: "🍹",
-  beverages: "🍹",
-  specials: "⭐",
+  lunch: "🍱",
+  burger: "🍔",
   breakfast: "🥐",
-  brunch: "🥞",
-  sides: "🍟",
-  kids: "🧒",
+  juice: "🧃",
+  sandwich: "🥪",
+  soft: "🥤",
+  shorma: "�",
+  "hot thing": "�️",
+  pizza: "🍕",
 };
 
 export const DEFAULT_CATEGORY_ORDER = [
-  "Starters",
-  "Main Course",
-  "Desserts",
-  "Drinks",
-  "Specials",
+  "Lunch",
+  "Burger",
+  "Breakfast",
+  "Juice",
+  "Sandwich",
+  "Soft",
+  "Shorma",
+  "Hot Thing",
+  "Pizza",
 ];
 
 export const formatCategoryLabel = (

@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Filter } from "lucide-react";
-import { useAllMenuItems, useCategoriesQuery } from "@/hooks/useMenuApi";
+import { useAllMenuItems } from "@/hooks/useMenuApi";
 import type { MenuItem } from "@/types/menu";
 import { MenuTopBar } from "@/components/menu/MenuTopBar";
 import { MenuCategoryTabs } from "@/components/menu/MenuCategoryTabs";
@@ -17,11 +17,21 @@ import { cn } from "@/lib/utils";
 import {
   DEFAULT_CATEGORY_ORDER,
   formatCategoryLabel,
-  mergeCategoryOrder,
 } from "@/lib/categoryLabels";
 import { Footer } from "@/components/Footer";
 
 const ALL_CATEGORY = "__all";
+
+const toCategoryDomId = (category: string) => {
+  if (category === ALL_CATEGORY) {
+    return "menu-tabpanel-all";
+  }
+  const normalized = category
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+  return `menu-tabpanel-${normalized || "all"}`;
+};
 
 type CartEntry = {
   item: MenuItem;
@@ -90,8 +100,6 @@ const MenuPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [cart, setCart] = useState<CartEntry[]>([]);
 
-  const { data: categoriesData, isLoading: categoriesLoading } =
-    useCategoriesQuery();
   const {
     data: rawItems,
     isLoading: itemsLoading,
@@ -110,11 +118,10 @@ const MenuPage = () => {
     }
   }, [location.search]);
 
-  const categories = useMemo(() => {
-    const fetched = categoriesData ?? [];
-    const merged = mergeCategoryOrder(fetched, DEFAULT_CATEGORY_ORDER);
-    return [ALL_CATEGORY, ...merged];
-  }, [categoriesData]);
+  const categories = useMemo(
+    () => [ALL_CATEGORY, ...DEFAULT_CATEGORY_ORDER],
+    []
+  );
 
   const menuItems: MenuItem[] = useMemo(() => {
     if (!rawItems) return [];
@@ -191,7 +198,7 @@ const MenuPage = () => {
   }, [menuItems, activeCategory, searchTerm]);
 
   const totalAvailable = filteredItems.length;
-  const loading = categoriesLoading || itemsLoading;
+  const loading = itemsLoading;
 
   const handleCategoryChange = useCallback(
     (category: string) => {
@@ -298,6 +305,12 @@ const MenuPage = () => {
     [t]
   );
 
+  const activePanelId = useMemo(
+    () => toCategoryDomId(activeCategory),
+    [activeCategory]
+  );
+  const activeTabId = `${activePanelId}-tab`;
+
   return (
     <div className="relative min-h-screen bg-gradient-to-b from-background via-background/95 to-background">
       <div className="absolute inset-x-0 top-0 -z-10 h-[60vh] bg-[radial-gradient(circle_at_top,_rgba(226,232,240,0.22),_transparent_55%)]" />
@@ -390,6 +403,9 @@ const MenuPage = () => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -16 }}
               transition={{ duration: 0.3, ease: "easeOut" }}
+              role="tabpanel"
+              id={activePanelId}
+              aria-labelledby={activeTabId}
             >
               {filteredItems.map((item) => (
                 <motion.div key={item.id} layout>

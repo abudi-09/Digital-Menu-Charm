@@ -44,11 +44,13 @@ export const MenuTopBar = ({
         </Button>
 
         <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <span className="text-xs uppercase tracking-[0.4em] text-primary/80">
-            Grand Vista
+          <span className="text-xs uppercase tracking-[0.45em] text-primary/80">
+            Lavender Café · ላቬንደር
           </span>
           <h1 className="text-2xl font-serif font-bold text-foreground sm:text-3xl">
-            {t("menu.title")}
+            {t("menu.hero_title", {
+              defaultValue: "Discover our signature plates",
+            })}
           </h1>
         </div>
 

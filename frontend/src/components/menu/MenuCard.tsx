@@ -5,6 +5,7 @@ import {
   Flame,
   Heart,
   Leaf,
+  Plus,
   ShoppingCart,
   Sparkles,
   Star,
@@ -38,9 +39,21 @@ const badgeIconMap: Record<string, ReactNode> = {
   vegetarian: <Leaf className="h-3.5 w-3.5" aria-hidden="true" />,
   chef: <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />,
   new: <Star className="h-3.5 w-3.5" aria-hidden="true" />,
-  popular: <Heart className="h-3.5 w-3.5" aria-hidden="true" />, // heart for popularity
+  popular: <Heart className="h-3.5 w-3.5" aria-hidden="true" />,
   signature: <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />,
   quick: <Timer className="h-3.5 w-3.5" aria-hidden="true" />,
+};
+
+const badgeTranslationKeys: Record<string, string> = {
+  spicy: "menu.badges.spicy",
+  vegan: "menu.badges.vegan",
+  vegetarian: "menu.badges.vegetarian",
+  chef: "menu.badges.chef",
+  "chef's special": "menu.badges.chefs_special",
+  new: "menu.badges.new",
+  popular: "menu.badges.popular",
+  signature: "menu.badges.signature",
+  quick: "menu.badges.quick",
 };
 
 const resolveBadges = (item: MenuItem) => {
@@ -89,23 +102,36 @@ export const MenuCard = memo(
       <TooltipProvider delayDuration={150}>
         <motion.article
           layoutId={layoutId}
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
           whileHover={{
-            y: -4,
-            boxShadow: "0px 18px 40px -24px rgba(17, 24, 39, 0.35)",
+            y: -6,
+            boxShadow: "0px 25px 45px -24px rgba(17, 24, 39, 0.35)",
           }}
-          transition={{ type: "spring", stiffness: 200, damping: 20 }}
+          transition={{
+            type: "spring",
+            stiffness: 220,
+            damping: 24,
+            mass: 0.9,
+          }}
           className={cn(
-            "group relative flex h-full flex-col overflow-hidden rounded-3xl border border-border/60 bg-background/95 backdrop-blur-sm transition-colors",
+            "group/card relative flex h-full flex-col overflow-hidden rounded-3xl border border-border/60 bg-background/95 bg-gradient-to-br from-background/70 via-background/90 to-background backdrop-blur-xl transition-all",
+            "focus-within:ring-2 focus-within:ring-primary/60",
             className
           )}
+          aria-label={item.name}
         >
+          <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover/card:opacity-100">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/15" />
+          </div>
+
           <div className="relative">
             <AspectRatio ratio={4 / 3}>
               <motion.img
                 src={imageSrc}
                 alt={item.name}
                 loading="lazy"
-                className="h-full w-full rounded-t-3xl object-cover transition-transform duration-500 will-change-transform group-hover:scale-105"
+                className="h-full w-full rounded-t-3xl object-cover transition-transform duration-500 will-change-transform group-hover/card:scale-105"
                 whileHover={{ scale: 1.05 }}
                 onError={(event) => {
                   (event.currentTarget as HTMLImageElement).src =
@@ -114,7 +140,7 @@ export const MenuCard = memo(
               />
             </AspectRatio>
 
-            <div className="pointer-events-none absolute inset-0 rounded-t-3xl bg-gradient-to-t from-background/80 via-background/20 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+            <div className="pointer-events-none absolute inset-0 rounded-t-3xl bg-gradient-to-t from-background/80 via-background/20 to-transparent opacity-0 transition-opacity duration-500 group-hover/card:opacity-100" />
 
             {badges.length > 0 ? (
               <div className="pointer-events-none absolute left-4 top-4 flex flex-wrap gap-2">
@@ -124,11 +150,13 @@ export const MenuCard = memo(
                   return (
                     <Badge
                       key={badge}
-                      className="bg-background/80 backdrop-blur-md"
+                      className="bg-background/85 backdrop-blur-md"
                     >
                       <span className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wide">
                         {icon}
-                        {badge}
+                        {t(badgeTranslationKeys[key] ?? badge, {
+                          defaultValue: badge,
+                        })}
                       </span>
                     </Badge>
                   );
@@ -141,18 +169,19 @@ export const MenuCard = memo(
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
+                      type="button"
                       size="icon"
                       variant="secondary"
                       onClick={(event) => {
                         event.stopPropagation();
                         onAddToOrder(item);
                       }}
-                      className="rounded-full border border-border/60 bg-background/80 text-muted-foreground shadow-sm transition-transform hover:scale-105 hover:text-primary"
+                      className="rounded-full border border-border/60 bg-background/90 text-muted-foreground shadow-soft transition-transform hover:scale-110 hover:text-primary"
                       aria-label={t("menu.add_to_order", {
                         defaultValue: "Add to Order",
                       })}
                     >
-                      <ShoppingCart className="h-4 w-4" aria-hidden="true" />
+                      <Plus className="h-4 w-4" aria-hidden="true" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent
@@ -172,9 +201,12 @@ export const MenuCard = memo(
                 <h3 className="text-lg font-semibold leading-tight text-foreground">
                   {item.name}
                 </h3>
-                <span className="shrink-0 rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">
+                <motion.span
+                  layout
+                  className="shrink-0 rounded-full bg-primary/12 px-3 py-1 text-sm font-semibold text-primary shadow-soft"
+                >
                   {price}
-                </span>
+                </motion.span>
               </div>
               <p className="line-clamp-3 text-sm leading-relaxed text-muted-foreground">
                 {item.description}
@@ -195,8 +227,9 @@ export const MenuCard = memo(
 
               <Separator className="border-border/60" />
 
-              <div className="flex items-center justify-between gap-3">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <Button
+                  type="button"
                   variant="ghost"
                   className="h-10 gap-2 rounded-full px-4 text-sm font-semibold transition-transform hover:-translate-y-0.5"
                   onClick={() => onViewDetails(item)}
@@ -207,9 +240,14 @@ export const MenuCard = memo(
 
                 {onAddToOrder ? (
                   <Button
-                    className="h-10 rounded-full px-4 text-sm font-semibold shadow-soft"
+                    type="button"
+                    className="group/add h-10 rounded-full px-4 text-sm font-semibold shadow-soft transition-transform hover:-translate-y-0.5"
                     onClick={() => onAddToOrder(item)}
                   >
+                    <ShoppingCart
+                      className="mr-2 h-4 w-4 transition-transform group-hover/add:scale-110"
+                      aria-hidden="true"
+                    />
                     {t("menu.add_to_order", { defaultValue: "Add to Order" })}
                   </Button>
                 ) : null}

@@ -14,6 +14,7 @@
   "nav": {
     "home": "Home",
     "menu": "Menu",
+    "about": "About",
     "contact": "Contact",
     "admin": "Admin Login"
   },
@@ -22,6 +23,16 @@
     "subtitle": "Explore our culinary offerings",
     "empty": "No items available in this category.",
     "categories": {
+      "All": "All",
+      "Lunch": "Lunch",
+      "Burger": "Burger",
+      "Breakfast": "Breakfast",
+      "Juice": "Juice",
+      "Sandwich": "Sandwich",
+      "Soft": "Soft Drinks",
+      "Shorma": "Shorma",
+      "Hot Thing": "Hot Thing",
+      "Pizza": "Pizza",
       "Starters": "Starters",
       "Main Course": "Main Course",
       "Desserts": "Desserts",
@@ -193,6 +204,15 @@
       "am": "Amharic"
     },
     "categories_values": {
+      "Lunch": "Lunch",
+      "Burger": "Burger",
+      "Breakfast": "Breakfast",
+      "Juice": "Juice",
+      "Sandwich": "Sandwich",
+      "Soft": "Soft Drinks",
+      "Shorma": "Shorma",
+      "Hot Thing": "Hot Thing",
+      "Pizza": "Pizza",
       "Starters": "Starters",
       "Main Course": "Main Course",
       "Desserts": "Desserts",
@@ -380,85 +400,101 @@
     "copy_link": "Copy Link"
   },
   "footer": {
-    "copyright": "All rights reserved",
-    "powered_by": "Powered by",
-    "opening_hours": "Opening Hours",
-    "weekdays": "Monday - Friday",
-    "weekends": "Saturday - Sunday",
+    "tagline": "Flavor, comfort, and culture in the heart of Gonder.",
+    "follow": "Follow us",
+    "hours": {
+      "title": "Opening Hours",
+      "everyday": "Sunday – Sunday",
+      "schedule": "12:00 AM – 12:00 PM",
+      "note": "Kitchen closes 30 minutes before closing time."
+    },
     "quick_links": "Quick Links",
-    "home": "Home",
-    "about": "About Us",
-    "home_aria": "Go to home page",
-    "menu_aria": "View our menu",
-    "about_aria": "Learn about us",
-    "staff_area": "Staff Area",
-    "staff_login_aria": "Staff login portal",
-    "call": "Call Grand Vista Hotel",
-    "email": "Email Grand Vista Hotel",
-    "contact_us": "Contact Us",
-    "phone_label": "Phone",
-    "email_label": "Email",
-    "hours": "Hours",
-    "follow_us": "Follow Us",
-    "location_label": "Location"
+    "about_link": "About Lavender",
+    "contact_link": "Contact & Reservations",
+    "scroll_top": "Back to top",
+    "copyright": "All rights reserved.",
+    "made_in_gonder": "Lovingly crafted in Gonder, Ethiopia."
   },
   "home": {
-    "hero_badge": "Boutique hospitality",
-    "hero_title": "Savor the Art of Fine Dining",
-    "hero_subtitle": "Exquisite Dining Experience",
-    "hero_primary_cta": "View full menu",
-    "hero_secondary_cta": "Reserve a table",
-    "hero_secondary_note": "Prefer personal service? Call our concierge at {{phone}}.",
-    "menu_intro": "Discover our carefully curated selection of dishes, crafted with passion and the finest ingredients",
-    "items_count": "{{count}} item",
-    "items_count_plural": "{{count}} items",
-    "scroll_indicator": "Scroll to menu",
-    "no_items": "No menu items are available right now. Please check back soon.",
-    "highlights_title": "Why Guests Love Grand Vista",
-    "since": "Serving guests since {{year}}",
-    "rating": "Rated {{rating}}/5 by our guests",
-    "chef_signature": "Chef's seasonal signatures updated weekly",
-    "highlight_cards": {
-      "craft": {
-        "title": "Culinary craftsmanship",
-        "description": "Seasonal tasting menus crafted with locally sourced ingredients."
-      },
-      "service": {
-        "title": "Tailored service",
-        "description": "A dedicated concierge team personalises every dining moment."
+    "hero": {
+      "badge": "Top-rated in Gonder",
+      "title": "Welcome to Lavender Café & Restaurant",
+      "copy": "Serving flavor, comfort, and culture — every single day.",
+      "primaryCta": "Explore Menu",
+      "secondaryCta": "Call to reserve",
+      "note": "Prefer to speak with us? Call {{phone}}."
+    },
+    "accolades": {
+      "rating": {
+        "title": "4.9★ community favorite",
+        "copy": "Beloved by locals and travelers for warm hospitality."
       },
       "ambience": {
-        "title": "Skyline ambience",
-        "description": "Panoramic city views, live piano, and candlelit evenings."
+        "title": "Lavender ambience",
+        "copy": "Soft lighting, curated playlists, and the scent of fresh herbs."
+      },
+      "chef": {
+        "title": "Chef-crafted classics",
+        "copy": "Seasonal menus inspired by Gonder’s vibrant culinary heritage."
       }
     },
-    "menu_section": {
-      "title": "Today's Signature Menu",
-      "description": "Start exploring the entire menu right here—no download required."
+    "experience": {
+      "heritage": {
+        "title": "Rooted in heritage",
+        "copy": "Authentic Ethiopian recipes, elevated with modern technique."
+      },
+      "ingredients": {
+        "title": "Locally sourced goodness",
+        "copy": "Farm-fresh ingredients from trusted Gonder producers."
+      },
+      "culture": {
+        "title": "Culture in every cup",
+        "copy": "Coffee ceremonies and artisan teas served throughout the day."
+      }
     },
-    "menu_cta": "Open digital menu",
-    "recommendation": {
-      "title": "Chef's recommendation",
-      "description": "A four-course tasting that reimagines Ethiopian flavors with modern finesse.",
-      "cta": "Reserve tasting experience",
-      "card_title": "Grand Vista tasting flight",
-      "tag_courses": "4 courses",
-      "tag_pairing": "Wine pairing option"
+    "about": {
+      "subtitle": "About Lavender Café & Restaurant / ላቬንደር ካፌ እና ምግብ ቤት",
+      "title": "Top-rated Café & Restaurant in Gonder",
+      "copy": "Lavender Café & Restaurant blends modern design with the soul of Ethiopian cuisine. From sunrise breakfasts to late-night gatherings, we create experiences that feel like home.",
+      "badge": "Since 2012",
+      "caption": "Award-winning hospitality in Piassa",
+      "imageAlt": "Lavender Café interior",
+      "cta": "Meet the team"
     },
-    "qr_section": {
-      "title": "Scan & Explore Instantly",
-      "description": "Each table features a dedicated QR code so guests can browse, check allergens, and order from their devices.",
-      "cta": "Learn about our QR program"
+    "menuPreview": {
+      "title": "Explore Our Signature Dishes",
+      "copy": "Handpicked favorites featuring chef specials, guest-loved classics, and fresh seasonal additions.",
+      "count": "{{count}} dishes featured today",
+      "empty": "We're plating new signatures soon. Please check back shortly.",
+      "cta": "View full menu"
     },
-    "testimonials_title": "What guests are saying",
-    "testimonial_placeholder": "“We're gathering the latest guest stories. Check back soon to hear from our diners.”",
+    "chefSection": {
+      "badge": "Chef's Table Experience",
+      "title": "Seasonal stories from our kitchen",
+      "copy": "Reserve an intimate tasting led by Chef Selam with pairings that celebrate Ethiopia’s vibrant terroir.",
+      "badges": {
+        "special": "Chef’s Special",
+        "pairing": "Wine pairing ready",
+        "local": "Local ingredients"
+      },
+      "cta": "Reserve tasting"
+    },
+    "testimonial": {
+      "quote": "“Lavender brings the tastes of Gonder to life with a modern glow.”",
+      "author": "Hanna Tadesse",
+      "role": "Travel food critic"
+    },
     "contact": {
+      "badge": "Contact",
       "title": "Contact & Reservations",
-      "subtitle": "Seating is limited each evening. Connect with our concierge team to plan your visit.",
-      "call": "Call concierge",
-      "email": "Write to us",
-      "location": "Visit the hotel",
-      "address": "123 Skyline Avenue, Addis Ababa"
+      "copy": "We’d love to host your next gathering or night out.",
+      "address": "Piassa, Gonder, Ethiopia",
+      "cards": {
+        "call": "Call us",
+        "email": "Email us",
+        "visit": "Find us on Maps"
+      },
+      "cta": "Start your reservation"
     }
   }
 }
