@@ -19,7 +19,10 @@ import { MenuItem } from "@/types/menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTranslation } from "react-i18next";
 import { useCategoriesQuery } from "@/hooks/useMenuApi";
-import { DEFAULT_CATEGORY_ORDER, mergeCategoryOrder } from "@/lib/categoryLabels";
+import {
+  DEFAULT_CATEGORY_ORDER,
+  mergeCategoryOrder,
+} from "@/lib/categoryLabels";
 
 const menuItemSchema = z.object({
   // Nested bilingual fields (independent values)
@@ -35,16 +38,24 @@ const menuItemSchema = z.object({
     en: z
       .string()
       .trim()
-      .min(1, "Description is required")
-      .max(200, "Description must be less than 200 characters"),
+      .optional()
+      .or(z.literal(""))
+      .transform((s) => (s === undefined ? "" : s))
+      .refine((s) => s.length <= 200, {
+        message: "Description must be less than 200 characters",
+      }),
     am: z.string().trim().optional().default(""),
   }),
   fullDescription: z.object({
     en: z
       .string()
       .trim()
-      .min(1, "Full description is required")
-      .max(1000, "Full description must be less than 1000 characters"),
+      .optional()
+      .or(z.literal(""))
+      .transform((s) => (s === undefined ? "" : s))
+      .refine((s) => s.length <= 1000, {
+        message: "Full description must be less than 1000 characters",
+      }),
     am: z.string().trim().optional().default(""),
   }),
 
@@ -54,7 +65,7 @@ const menuItemSchema = z.object({
     .positive("Price must be positive")
     .max(9999, "Price too high"),
   ingredients: z.object({
-    en: z.string().trim().min(1, "Ingredients are required"),
+    en: z.string().trim().optional().default(""),
     am: z.string().trim().optional().default(""),
   }),
   allergens: z.object({
@@ -345,19 +356,18 @@ export const MenuItemForm = ({
               <SelectValue placeholder={t("menuMgmt.labels.select_category")} />
             </SelectTrigger>
             <SelectContent>
-              {mergeCategoryOrder(
-                categories || [],
-                DEFAULT_CATEGORY_ORDER
-              ).map((c) => {
-                const label = t(`menuMgmt.categories_values.${c}`, {
-                  defaultValue: c,
-                });
-                return (
-                  <SelectItem key={c} value={c}>
-                    {label}
-                  </SelectItem>
-                );
-              })}
+              {mergeCategoryOrder(categories || [], DEFAULT_CATEGORY_ORDER).map(
+                (c) => {
+                  const label = t(`menuMgmt.categories_values.${c}`, {
+                    defaultValue: c,
+                  });
+                  return (
+                    <SelectItem key={c} value={c}>
+                      {label}
+                    </SelectItem>
+                  );
+                }
+              )}
             </SelectContent>
           </Select>
           {errors.category && (

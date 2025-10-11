@@ -67,15 +67,15 @@ const extractLocalizedArray = (value: unknown, language: string): string[] => {
 };
 
 const formatMoney = (value: number, currency?: string) => {
-  const currencyCode = currency ?? "USD";
+  const currencyCode = currency ?? "ETB";
   try {
-    return new Intl.NumberFormat(undefined, {
+    return new Intl.NumberFormat(i18n.language, {
       style: "currency",
       currency: currencyCode,
       currencyDisplay: "narrowSymbol",
     }).format(value);
   } catch (error) {
-    return `${currencyCode} ${value.toFixed(2)}`;
+    return `Br ${value.toFixed(2)}`;
   }
 };
 

@@ -68,7 +68,7 @@ const resolveBadges = (item: MenuItem) => {
 };
 
 const formatPrice = (value: number, currency?: string) => {
-  const currencyCode = currency ?? "USD";
+  const currencyCode = currency ?? "ETB";
   try {
     return new Intl.NumberFormat(undefined, {
       style: "currency",

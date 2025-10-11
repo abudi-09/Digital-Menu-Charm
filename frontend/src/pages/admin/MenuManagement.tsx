@@ -58,6 +58,18 @@ const MenuManagement = () => {
   const [limit] = useState<number>(5);
 
   const { i18n, t } = useTranslation();
+  const formatPrice = (value: number) => {
+    try {
+      return new Intl.NumberFormat(i18n.language, {
+        style: "currency",
+        currency: "ETB",
+        maximumFractionDigits: 2,
+        currencyDisplay: "narrowSymbol",
+      }).format(value);
+    } catch (err) {
+      return `Br ${value.toFixed(2)}`;
+    }
+  };
 
   // Load paginated items from backend. Passing params ensures paged response shape.
   const {
@@ -95,9 +107,41 @@ const MenuManagement = () => {
   const totalPages = paged?.totalPages ?? 1;
   const totalItemsAll = paged?.total ?? 0;
 
+  // Compute unique categories from both the categories endpoint and item.category fields
+  const totalCategoriesCount = useMemo(() => {
+    const set = new Set<string>();
+    // categories from backend (could be array of strings or objects)
+    (categories ?? []).forEach((c: unknown) => {
+      if (c === null || c === undefined) return;
+      if (typeof c === "string") {
+        const v = c.trim();
+        if (v && v.toLowerCase() !== "all") set.add(v);
+        return;
+      }
+      if (typeof c === "object") {
+        try {
+          const asAny = c as Record<string, unknown>;
+          const raw = asAny.name ?? asAny.value ?? asAny.label ?? "";
+          const v = String(raw).trim();
+          if (v && v.toLowerCase() !== "all") set.add(v);
+        } catch (e) {
+          // ignore
+        }
+      }
+    });
+    // categories present on items (may not be in categories list)
+    itemsFromBackend.forEach((it) => {
+      if (it?.category) {
+        const v = it.category.toString().trim();
+        if (v && v.toLowerCase() !== "all") set.add(v);
+      }
+    });
+    return set.size;
+  }, [categories, itemsFromBackend]);
+
   const stats = {
     totalItems: totalItemsAll,
-    totalCategories: (categories ?? []).length,
+    totalCategories: totalCategoriesCount,
     outOfStock: itemsFromBackend.filter((item) => !item.available).length,
   };
 
@@ -352,7 +396,9 @@ const MenuManagement = () => {
                           </p>
                         </div>
                         <span className="text-lg font-bold text-primary whitespace-nowrap">
-                          ${((item as MenuItem).price ?? 0).toFixed(2)}
+                          {formatPrice(
+                            ((item as MenuItem).price ?? 0) as number
+                          )}
                         </span>
                       </>
                     )}

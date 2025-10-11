@@ -43,14 +43,16 @@ export const ItemDetailModal = ({
 
   const price = useMemo(() => {
     if (!item) return "";
-    const currency = item.currency ?? "USD";
+    const currency = item.currency ?? "ETB";
     try {
       return new Intl.NumberFormat(undefined, {
         style: "currency",
         currency,
+        maximumFractionDigits: 2,
+        currencyDisplay: "narrowSymbol",
       }).format(item.price * quantity);
     } catch (error) {
-      return `${currency} ${(item.price * quantity).toFixed(2)}`;
+      return `Br ${(item.price * quantity).toFixed(2)}`;
     }
   }, [item, quantity]);
 

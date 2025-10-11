@@ -21,7 +21,19 @@ export const ItemDetailsModal = ({
   open,
   onClose,
 }: ItemDetailsModalProps) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const formatPrice = (value: number) => {
+    try {
+      return new Intl.NumberFormat(i18n.language, {
+        style: "currency",
+        currency: "ETB",
+        maximumFractionDigits: 2,
+        currencyDisplay: "narrowSymbol",
+      }).format(value);
+    } catch (err) {
+      return `Br ${value.toFixed(2)}`;
+    }
+  };
   if (!item) return null;
 
   return (
@@ -50,7 +62,7 @@ export const ItemDetailsModal = ({
                   {item.name}
                 </DialogTitle>
                 <span className="text-2xl font-bold text-primary whitespace-nowrap">
-                  ${item.price.toFixed(2)}
+                  {formatPrice(item.price)}
                 </span>
               </div>
             </DialogHeader>

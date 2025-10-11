@@ -10,7 +10,19 @@ interface MenuItemCardProps {
 }
 
 export const MenuItemCard = ({ item, onViewDetails }: MenuItemCardProps) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const formatPrice = (value: number) => {
+    try {
+      return new Intl.NumberFormat(i18n.language, {
+        style: "currency",
+        currency: "ETB",
+        maximumFractionDigits: 2,
+        currencyDisplay: "narrowSymbol",
+      }).format(value);
+    } catch (err) {
+      return `Br ${value.toFixed(2)}`;
+    }
+  };
   return (
     <Card className="group flex h-full flex-col overflow-hidden border-border bg-gradient-card transition-all duration-300 hover:shadow-hover animate-fade-in">
       <div className="aspect-[4/3] w-full overflow-hidden sm:aspect-video">
@@ -27,7 +39,7 @@ export const MenuItemCard = ({ item, onViewDetails }: MenuItemCardProps) => {
             {item.name}
           </h3>
           <span className="text-base font-bold text-primary sm:text-lg">
-            ${item.price.toFixed(2)}
+            {formatPrice(item.price)}
           </span>
         </div>
 

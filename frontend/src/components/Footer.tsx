@@ -136,12 +136,18 @@ export const Footer = () => {
               <Link to="/menu" className="transition-colors hover:text-white">
                 {t("nav.menu")}
               </Link>
-              <a href="#about" className="transition-colors hover:text-white">
+              <Link to="/about" className="transition-colors hover:text-white">
                 {t("footer.about_link")}
-              </a>
+              </Link>
               <a href="#contact" className="transition-colors hover:text-white">
                 {t("footer.contact_link")}
               </a>
+              <Link
+                to="/admin/login"
+                className="mt-2 inline-flex w-fit items-center gap-2 rounded-full bg-white/5 px-3 py-1 text-sm font-medium text-slate-100 transition-colors hover:bg-white/10"
+              >
+                {t("nav.admin", { defaultValue: "Admin Login" })}
+              </Link>
             </nav>
 
             <Button
