@@ -191,6 +191,7 @@
     },
     "lang_tab": { "en": "እንግሊዝኛ", "am": "አማርኛ" },
     "categories_values": {
+      "Pasta": "ፓስታ",
       "Starters": "ጀማሪዎች",
       "Main Course": "ዋና ምግብ",
       "Desserts": "ንቁላል",

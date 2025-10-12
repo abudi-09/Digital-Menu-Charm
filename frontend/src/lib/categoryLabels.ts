@@ -8,6 +8,7 @@ const EMOJI_MAP: Record<string, string> = {
   shorma: "�",
   "hot thing": "�️",
   pizza: "🍕",
+  pasta: "🍝",
 };
 
 export const DEFAULT_CATEGORY_ORDER = [
@@ -20,6 +21,7 @@ export const DEFAULT_CATEGORY_ORDER = [
   "Shorma",
   "Hot Thing",
   "Pizza",
+  "Pasta",
 ];
 
 export const formatCategoryLabel = (
