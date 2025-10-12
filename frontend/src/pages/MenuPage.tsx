@@ -19,6 +19,7 @@ import {
   formatCategoryLabel,
 } from "@/lib/categoryLabels";
 import { Footer } from "@/components/Footer";
+import i18n from "@/i18n";
 
 const ALL_CATEGORY = "__all";
 
