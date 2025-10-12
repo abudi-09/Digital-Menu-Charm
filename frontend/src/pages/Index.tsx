@@ -74,6 +74,7 @@ const Index = () => {
       "Shorma",
       "Hot Thing",
       "Pizza",
+      "Pasta",
     ];
     return [ALL_CATEGORY, ...fixed];
   }, []);

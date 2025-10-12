@@ -45,20 +45,20 @@ const About = () => {
               Lavender Café & Restaurant / ላቬንደር ካፌ እና ምግቤት
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Passion, flavor, and warmth in every dish — rooted in Gondar.
+              Passion, flavor, and warmth in every dish rooted in Gondar.
             </p>
           </div>
 
           {/* Story Section */}
           <Card className="p-8 bg-gradient-card border-border">
             <h3 className="text-2xl font-bold font-serif text-foreground mb-4">
-              🌿 Our Story – Lavender Café & Restaurant (ላቬንደር ካፌ እና ምግቤት)
+              🌿 Our Story Lavender Café & Restaurant (ላቬንደር ካፌ እና ምግቤት)
             </h3>
             <div className="space-y-4 text-muted-foreground leading-relaxed">
               <p>
                 Nestled in the heart of Gondar, Lavender Café & Restaurant
-                (ላቬንደር ካፌ እና ምግቤት) is more than just a place to eat — it’s a
-                space to connect, unwind, and celebrate the art of good food.
+                (ላቬንደር ካፌ እና ምግቤት) is more than just a place to eat it’s a space
+                to connect, unwind and celebrate the art of good food.
               </p>
 
               <p>
@@ -70,14 +70,14 @@ const About = () => {
               </p>
 
               <p>
-                At Lavender Café, we believe food is not just about taste — it’s
+                At Lavender Café, we believe food is not just about taste it’s
                 about experience, emotion, and community. That’s why every
                 detail, from our ingredients to our ambiance, is crafted with
                 care.
               </p>
 
               <p className="font-semibold">
-                ✨ Lavender Café & Restaurant — where flavor meets comfort, and
+                ✨ Lavender Café & Restaurant where flavor meets comfort, and
                 every visit feels like home.
               </p>
             </div>

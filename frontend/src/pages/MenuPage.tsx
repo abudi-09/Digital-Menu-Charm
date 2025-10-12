@@ -120,7 +120,7 @@ const MenuPage = () => {
   }, [location.search]);
 
   const categories = useMemo(
-    () => [ALL_CATEGORY, ...DEFAULT_CATEGORY_ORDER],
+    () => [ALL_CATEGORY, ...DEFAULT_CATEGORY_ORDER, "Pasta"],
     []
   );
 
