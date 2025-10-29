@@ -15,6 +15,7 @@
    - `DB_NAME` = `digital-menu-charm`
    - `JWT_SECRET` = <strong-random-secret>
    - Any mail/Twilio credentials used by your app (e.g., `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS`, `TWILIO_SID`, `TWILIO_TOKEN`)
+   - `PUBLIC_API_ORIGIN` — e.g. `https://<your-service>.onrender.com` (optional but recommended). When set, QR signed URLs will be absolute, so the frontend does not need to know the backend origin at build time.
 
 3. Deploy and verify:
    - Visit the Render service URL (e.g. `https://<your-service>.onrender.com`).
@@ -48,8 +49,5 @@
 - Do NOT commit `.env` with secrets. Use Render and Vercel environment variable UI to store secrets.
 - If `.env` was committed, rotate the secrets immediately (rotate DB user password and JWT secret).
 - The backend now prefers `process.env.PORT` (Render will set it automatically). If you want the server to run on a fixed port locally, put `PORT=5001` in `backend/.env` (but keep that file out of git).
-
-## Troubleshooting
-
 - If you see "API endpoint not found" in the frontend, verify `VITE_API_URL` has the `/api` suffix and the Render service is healthy.
 - If the Render build fails, open the build logs and look for `tsc`/`npm install` errors; copy and paste logs if you want me to triage them.

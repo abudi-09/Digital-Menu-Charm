@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc",
-    "start": "node dist/server.js",
+    "start": "node src/server.js",
     "test": "ts-node --transpile-only tests/security.test.ts && ts-node --transpile-only tests/passwordReset.test.ts"
   },
   "dependencies": {

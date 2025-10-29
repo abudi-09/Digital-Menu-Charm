@@ -9,6 +9,11 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
   },
+  build: {
+    // Increase the chunk size warning limit to 2000 KB (2 MB)
+    // Default is 500 KB. Adjust this value if you need a different threshold.
+    chunkSizeWarningLimit: 2000,
+  },
   plugins: [react(), mode === "development" && componentTagger()].filter(
     Boolean
   ),

@@ -102,9 +102,17 @@ const signImageKey = (imageKey: string) => {
   });
 };
 
+/**
+ * Build a signed URL for downloading the QR asset.
+ * If PUBLIC_API_ORIGIN is provided (e.g., https://your-backend.onrender.com),
+ * return an absolute URL so browser-only clients (Vercel) don't need to know
+ * the backend origin at build time. Otherwise, return a relative path.
+ */
 const getSignedUrl = (imageKey: string) => {
   const token = signImageKey(imageKey);
-  return `/api/admin/qr/file/${imageKey}?token=${token}`;
+  const path = `/api/admin/qr/file/${imageKey}?token=${token}`;
+  const origin = process.env.PUBLIC_API_ORIGIN?.replace(/\/+$/, "");
+  return origin ? `${origin}${path}` : path;
 };
 
 export const createQRCode = async (params: {
