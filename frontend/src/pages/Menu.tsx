@@ -8,7 +8,7 @@ import { ItemDetailsModal } from "@/components/ItemDetailsModal";
 import { MenuCategoryTabs } from "@/components/menu/MenuCategoryTabs";
 import { SkeletonCard } from "@/components/SkeletonCard";
 import { Footer } from "@/components/Footer";
-import { menuItems as staticMenuItems, categories } from "@/data/menuData";
+import { useCategoriesQuery } from "@/hooks/useMenuApi";
 import { DEFAULT_CATEGORY_ORDER } from "@/lib/categoryLabels";
 import { MenuItem } from "@/types/menu";
 import { useMenuQuery } from "@/hooks/useMenuApi";
@@ -32,6 +32,8 @@ const Menu = () => {
     isLoading: apiLoading,
     isError,
   } = useMenuQuery({ lang: i18n.language });
+
+  const { data: backendCategories } = useCategoriesQuery();
 
   useEffect(() => {
     // Keep a short skeleton for visual polish while fetching
@@ -122,7 +124,15 @@ const Menu = () => {
     activeCategory === "__all" ? true : item.category === activeCategory
   );
 
-  const tabList = ["__all", ...DEFAULT_CATEGORY_ORDER];
+  // Prefer backend-provided categories when available, otherwise fall back to the
+  // default category order defined in the app. Normalize to the expected tab list
+  // shape ("__all" first).
+  const tabList = [
+    "__all",
+    ...(Array.isArray(backendCategories) && backendCategories.length > 0
+      ? backendCategories
+      : DEFAULT_CATEGORY_ORDER),
+  ];
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
