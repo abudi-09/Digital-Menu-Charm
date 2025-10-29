@@ -26,3 +26,4 @@ backend/storage/
 *.sln
 *.sw?
 .env
+backend/.env

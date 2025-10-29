@@ -7,14 +7,10 @@ dotenv.config();
 const start = async () => {
   await connectDB();
 
+  // Use the PORT provided by the environment when available (Render, Heroku, etc.).
+  // Fallback to 5001 for local development when PORT is not set.
   const configuredPort = Number(process.env.PORT ?? "5001");
-  const port = 5001;
-
-  if (configuredPort && configuredPort !== port) {
-    console.warn(
-      `Configured PORT (${configuredPort}) differs from required port ${port}. Using ${port} to keep backend and frontend aligned.`
-    );
-  }
+  const port = configuredPort;
 
   const server = app.listen(port, () => {
     console.log(`Server listening on port ${port}`);
