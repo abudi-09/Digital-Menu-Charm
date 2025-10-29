@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/menu", "destination": "/index.html" },
+    { "source": "/menu/:path*", "destination": "/index.html" }
+  ]
+}
