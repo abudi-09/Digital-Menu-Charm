@@ -6,6 +6,7 @@ import {
   incrementScanCount,
   verifyFileToken,
 } from "../services/qrService";
+import { regenerateQRCodeFileForKey } from "../services/qrService";
 
 export const getQRFile = async (req: Request, res: Response) => {
   const { key } = req.params;
@@ -43,9 +44,7 @@ export const getQRFile = async (req: Request, res: Response) => {
       return res.sendFile(filePath);
     } catch (err) {
       // file missing on disk - attempt to regenerate from DB record
-      const regenerated = await (
-        await import("../services/qrService.js")
-      ).regenerateQRCodeFileForKey(key);
+      const regenerated = await regenerateQRCodeFileForKey(key);
       if (regenerated) {
         return res.sendFile(filePath);
       }
